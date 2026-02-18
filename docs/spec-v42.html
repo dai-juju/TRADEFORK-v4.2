@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRADEFORK 기능명세서 v4.2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a3a;--text:#e0e0e8;--text-dim:#8888a0;--accent:#00d4aa;--accent2:#7b61ff;--q:#7b61ff;--intel:#00d4aa;--t1:#4ecdc4;--t2:#ffd93d;--t3:#ff6b6b;--fb:#ff9f43}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:400;line-height:1.8}
+.ctr{max-width:1120px;margin:0 auto;padding:60px 32px}
+.hdr{text-align:center;padding:80px 32px 60px;border-bottom:1px solid var(--border);margin-bottom:60px}
+.hdr h1{font-size:2.4rem;font-weight:900;letter-spacing:-0.02em;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
+.hdr .sub{font-size:1rem;color:var(--text-dim);font-weight:300}
+.hdr .ver{display:inline-block;margin-top:16px;padding:4px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--accent)}
+.toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;margin-bottom:60px}
+.toc h2{font-size:1.1rem;font-weight:700;color:var(--accent);margin-bottom:20px;text-transform:uppercase;letter-spacing:.08em;font-family:'JetBrains Mono',monospace}
+.toc-g{display:grid;grid-template-columns:1fr 1fr;gap:6px 32px}
+.toc a{color:var(--text-dim);text-decoration:none;font-size:.9rem;padding:5px 0;display:flex;align-items:center;gap:10px;transition:color .2s}
+.toc a:hover{color:var(--accent)}
+.toc .n{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent2);width:24px;flex-shrink:0}
+.sec{margin-bottom:72px}
+.sl{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
+.sec h2{font-size:1.5rem;font-weight:900;margin-bottom:20px;letter-spacing:-0.01em}
+.sec h3{font-size:1.1rem;font-weight:700;margin:28px 0 14px;padding-left:14px;border-left:3px solid var(--accent)}
+p{margin-bottom:12px;font-size:.93rem}
+.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:16px 0}
+.cd{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
+.cd .cl{font-family:'JetBrains Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.cd h4{font-size:.95rem;font-weight:700;margin-bottom:6px}
+.cd p{font-size:.85rem;color:var(--text-dim);margin-bottom:0}
+.cd.q{border-left:3px solid var(--q)}.cd.q .cl{color:var(--q)}
+.cd.i{border-left:3px solid var(--intel)}.cd.i .cl{color:var(--intel)}
+.cd.t1{border-left:3px solid var(--t1)}.cd.t1 .cl{color:var(--t1)}
+.cd.t2{border-left:3px solid var(--t2)}.cd.t2 .cl{color:var(--t2)}
+.cd.t3{border-left:3px solid var(--t3)}.cd.t3 .cl{color:var(--t3)}
+.cd.fb{border-left:3px solid var(--fb)}.cd.fb .cl{color:var(--fb)}
+.dw{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;margin:20px 0;overflow-x:auto}
+.dw svg{display:block;margin:0 auto}
+.dc{text-align:center;font-size:.78rem;color:var(--text-dim);margin-top:14px;font-style:italic}
+.fh{display:flex;align-items:center;gap:0;margin:20px 0;flex-wrap:wrap;justify-content:center}
+.fb-{padding:12px 18px;border-radius:8px;font-size:.85rem;font-weight:600;text-align:center;min-width:110px;white-space:nowrap}
+.fa{font-size:1.3rem;color:var(--text-dim);padding:0 5px;flex-shrink:0}
+.fq{background:rgba(123,97,255,.15);color:var(--q);border:1px solid rgba(123,97,255,.3)}
+.fi{background:rgba(0,212,170,.12);color:var(--intel);border:1px solid rgba(0,212,170,.3)}
+.ft1{background:rgba(78,205,196,.12);color:var(--t1);border:1px solid rgba(78,205,196,.3)}
+.ft2{background:rgba(255,217,61,.12);color:var(--t2);border:1px solid rgba(255,217,61,.3)}
+.ft3{background:rgba(255,107,107,.12);color:var(--t3);border:1px solid rgba(255,107,107,.3)}
+.ffb{background:rgba(255,159,67,.12);color:var(--fb);border:1px solid rgba(255,159,67,.3)}
+.dl{margin:14px 0}
+.di{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.di:last-child{border-bottom:none}
+.dm{flex-shrink:0;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;margin-top:2px}
+.dd{flex:1}
+.dd strong{color:var(--text);font-weight:600}
+.dd p{color:var(--text-dim);font-size:.85rem;margin-bottom:0}
+.sc{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:22px;margin:14px 0}
+.sc .st{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.sc .m{padding:7px 13px;border-radius:8px;margin-bottom:7px;font-size:.85rem}
+.sc .mu{background:rgba(123,97,255,.12);border:1px solid rgba(123,97,255,.2);color:var(--q);margin-left:40px}
+.sc .mf{background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.15);color:var(--intel);margin-right:40px}
+.sc .ms{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:.76rem;text-align:center}
+.hb{border-radius:10px;padding:18px 22px;margin:16px 0;font-size:.9rem}
+.hb.inf{background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.2)}
+.hb.wrn{background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.2)}
+.hb.rul{background:rgba(123,97,255,.08);border:1px solid rgba(123,97,255,.2)}
+.hb.dng{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2)}
+.sep{height:1px;background:var(--border);margin:56px 0}
+.sf{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:10px 0}
+.sf .ss{padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:.8rem;font-family:'JetBrains Mono',monospace}
+.sf .sa{color:var(--text-dim);font-size:1rem}
+table.tb{width:100%;border-collapse:collapse;margin:14px 0;font-size:.87rem}
+table.tb th{text-align:left;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-weight:600;font-size:.82rem}
+table.tb td{padding:10px 14px;border:1px solid var(--border);color:var(--text-dim)}
+.tg{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.7rem;font-family:'JetBrains Mono',monospace;font-weight:600;margin-right:3px}
+.tg-a{background:rgba(0,212,170,.15);color:#00d4aa}
+.tg-c{background:rgba(255,217,61,.15);color:#ffd93d}
+.tg-k{background:rgba(123,97,255,.15);color:#7b61ff}
+.tg-g{background:rgba(78,205,196,.15);color:#4ecdc4}
+.tg-f{background:rgba(0,212,170,.1);color:#00d4aa}
+.tg-p{background:rgba(255,107,107,.1);color:#ff6b6b}
+.cmd{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin:8px 0;font-family:'JetBrains Mono',monospace;font-size:.84rem;color:var(--accent);white-space:pre-wrap;line-height:1.6}
+.code-block{background:#0d0d14;border:1px solid var(--border);border-radius:8px;padding:18px;margin:14px 0;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--text-dim);white-space:pre;overflow-x:auto;line-height:1.7}
+@media(max-width:700px){
+.ctr{padding:40px 16px}.hdr{padding:60px 16px 40px}.hdr h1{font-size:1.7rem}
+.toc-g{grid-template-columns:1fr}.cg{grid-template-columns:1fr}
+.fh{flex-direction:column}.fa{transform:rotate(90deg)}
+.sc .mu{margin-left:0}.sc .mf{margin-right:0}
+table.tb{font-size:.78rem}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>TRADEFORK 기능명세서</h1>
+  <p class="sub">코어 파이프라인 · 온보딩 · 요금제 · 아키텍처 · 보안 — 한국어/English 글로벌</p>
+  <span class="ver">v4.2</span>
+</div>
+
+<div class="ctr">
+
+<nav class="toc">
+  <h2>목차 — 23 Sections</h2>
+  <div class="toc-g">
+    <a href="#s01"><span class="n">01</span>전체 파이프라인 개요</a>
+    <a href="#s02"><span class="n">02</span>Q — 유저 데이터 수집</a>
+    <a href="#s03"><span class="n">03</span>Q1 매매 감지 흐름</a>
+    <a href="#s04"><span class="n">04</span>Q2 채팅 상세 흐름</a>
+    <a href="#s05"><span class="n">05</span>API — 외부 데이터 소스</a>
+    <a href="#s06"><span class="n">06</span>뉴스/이슈 소스 상세</a>
+    <a href="#s07"><span class="n">07</span>Intelligence Module</a>
+    <a href="#s08"><span class="n">08</span>에피소드 상세 구조</a>
+    <a href="#s09"><span class="n">09</span>Tier 1 — 실시간 감시</a>
+    <a href="#s10"><span class="n">10</span>Tier 1 Base 상세</a>
+    <a href="#s11"><span class="n">11</span>Tier 1 Base 온도 관리</a>
+    <a href="#s12"><span class="n">12</span>Tier 1 User Trigger 3단계 체계</a>
+    <a href="#s13"><span class="n">13</span>Tier 1 Patrol 상세</a>
+    <a href="#s14"><span class="n">14</span>Tier 2 — 심층 수집</a>
+    <a href="#s15"><span class="n">15</span>Tier 3 — AI 판단</a>
+    <a href="#s16"><span class="n">16</span>Feedback — 순환 학습</a>
+    <a href="#s17"><span class="n">17</span>채팅 자율 서치</a>
+    <a href="#s18"><span class="n">18</span>텔레그램 명령어 + 싱크로율</a>
+    <a href="#s19"><span class="n">19</span>온보딩 설계 (콜드 스타트)</a>
+    <a href="#s20"><span class="n">20</span>요금제 및 비용 구조</a>
+    <a href="#s21"><span class="n">21</span>API-First 아키텍처</a>
+    <a href="#s22"><span class="n">22</span>보안 구조</a>
+    <a href="#s23"><span class="n">23</span>시나리오 예시</a>
+  </div>
+</nav>
+
+<!-- ===== 01 ===== -->
+<section class="sec" id="s01">
+<div class="sl">01</div>
+<h2>전체 파이프라인 개요</h2>
+<p>TRADEFORK의 모든 기능은 하나의 순환 파이프라인. Q(수집) → Intelligence(학습) → Tier 1/2/3(감시/판단) → 시그널 → Feedback → Q. 한국어/영어 글로벌.</p>
+<div class="dw">
+<svg width="900" height="460" viewBox="0 0 900 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="30" y="170" width="120" height="70" rx="10" fill="rgba(123,97,255,.15)" stroke="#7b61ff" stroke-width="1.5"/>
+<text x="90" y="202" text-anchor="middle" fill="#7b61ff" font-family="JetBrains Mono" font-size="11" font-weight="600">Q</text>
+<text x="90" y="220" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="10">유저 데이터</text>
+<line x1="150" y1="205" x2="200" y2="205" stroke="#444" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="200" y="155" width="140" height="100" rx="10" fill="rgba(0,212,170,.1)" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="270" y="195" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="10" font-weight="600">INTELLIGENCE</text>
+<text x="270" y="215" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="10" font-weight="600">MODULE</text>
+<text x="270" y="237" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="9">에피소드 기억</text>
+<line x1="340" y1="205" x2="400" y2="205" stroke="#444" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="400" y="60" width="160" height="290" rx="10" fill="rgba(78,205,196,.05)" stroke="#4ecdc4" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="480" y="85" text-anchor="middle" fill="#4ecdc4" font-family="JetBrains Mono" font-size="10" font-weight="600">TIER 1 실시간 감시</text>
+<rect x="415" y="100" width="130" height="40" rx="6" fill="rgba(78,205,196,.12)" stroke="#4ecdc4" stroke-width="1"/>
+<text x="480" y="125" text-anchor="middle" fill="#4ecdc4" font-family="Noto Sans KR" font-size="10" font-weight="600">Base</text>
+<rect x="415" y="150" width="130" height="40" rx="6" fill="rgba(78,205,196,.12)" stroke="#4ecdc4" stroke-width="1"/>
+<text x="480" y="175" text-anchor="middle" fill="#4ecdc4" font-family="Noto Sans KR" font-size="10" font-weight="600">User Trigger</text>
+<rect x="415" y="200" width="130" height="40" rx="6" fill="rgba(78,205,196,.12)" stroke="#4ecdc4" stroke-width="1"/>
+<text x="480" y="225" text-anchor="middle" fill="#4ecdc4" font-family="Noto Sans KR" font-size="10" font-weight="600">Patrol</text>
+<rect x="415" y="256" width="130" height="34" rx="6" fill="rgba(255,217,61,.08)" stroke="#ffd93d" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="480" y="278" text-anchor="middle" fill="#ffd93d" font-family="Noto Sans KR" font-size="8">경량알림/매매감지</text>
+<line x1="560" y1="170" x2="610" y2="170" stroke="#444" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="610" y="145" width="120" height="55" rx="10" fill="rgba(255,217,61,.1)" stroke="#ffd93d" stroke-width="1.5"/>
+<text x="670" y="175" text-anchor="middle" fill="#ffd93d" font-family="JetBrains Mono" font-size="10" font-weight="600">TIER 2 수집</text>
+<line x1="730" y1="172" x2="770" y2="172" stroke="#444" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="770" y="145" width="110" height="55" rx="10" fill="rgba(255,107,107,.1)" stroke="#ff6b6b" stroke-width="1.5"/>
+<text x="825" y="175" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="10" font-weight="600">TIER 3 판단</text>
+<line x1="825" y1="200" x2="825" y2="250" stroke="#444" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="755" y="250" width="140" height="48" rx="10" fill="rgba(255,107,107,.08)" stroke="#ff6b6b" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="825" y="272" text-anchor="middle" fill="#ff6b6b" font-family="Noto Sans KR" font-size="10">시그널 / 자율 브리핑</text>
+<text x="825" y="290" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">→ 유저에게 전달</text>
+<path d="M755 320 Q 400 410 90 240" stroke="#ff9f43" stroke-width="1.5" fill="none" stroke-dasharray="6,4" marker-end="url(#ao)"/>
+<text x="420" y="395" text-anchor="middle" fill="#ff9f43" font-family="JetBrains Mono" font-size="10" font-weight="600">FEEDBACK → Q 순환</text>
+<text x="420" y="412" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">시그널 피드백 + 매매 결과 + 근거 확인</text>
+<rect x="200" y="20" width="120" height="40" rx="20" fill="rgba(255,255,255,.04)" stroke="#555" stroke-width="1"/>
+<text x="260" y="45" text-anchor="middle" fill="#8888a0" font-family="JetBrains Mono" font-size="9">API + News</text>
+<line x1="260" y1="60" x2="270" y2="155" stroke="#555" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="340" y1="38" x2="480" y2="100" stroke="#555" stroke-width="1" stroke-dasharray="3,3"/>
+<rect x="30" y="380" width="330" height="44" rx="10" fill="rgba(123,97,255,.06)" stroke="#7b61ff" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="195" y="402" text-anchor="middle" fill="#7b61ff" font-family="Noto Sans KR" font-size="9" font-weight="500">유저 질문 → 자율 서치 → 응답 + Intelligence 저장</text>
+<text x="195" y="418" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">(Base + API + 브라우징)</text>
+<defs><marker id="a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#666"/></marker><marker id="ao" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#ff9f43"/></marker></defs>
+</svg>
+<p class="dc">코어 파이프라인 — Q → Intelligence → Tier 1/2/3 → 시그널 → Feedback → Q</p>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 02 ===== -->
+<section class="sec" id="s02">
+<div class="sl">02</div>
+<h2>Q — 유저 데이터 수집</h2>
+<p>FORKER가 유저를 이해하기 위해 수집하는 모든 데이터. 텔레그램이 유일한 수집 채널.</p>
+<div class="cg">
+<div class="cd q"><div class="cl">Q1</div><h4>매매 기록 + 근거 + 결과</h4><p>거래소 API 자동 감지. 근거 추론→확인. 코멘터리. 복기. 결과 기록.</p></div>
+<div class="cd q"><div class="cl">Q2</div><h4>FORKER와의 모든 채팅</h4><p>항상 Intelligence 참조 대화. 텍스트 + 이미지(차트 캡처 등) 입력 지원. 요청, 질문, 토론, 복기, 잡담.</p></div>
+<div class="cd q"><div class="cl">Q3</div><h4>투자 원칙</h4><p>"손절 -5%", "펀딩비 -0.1% 이하면 롱" 등. /principles로 추가/수정/삭제/전체교체.</p></div>
+<div class="cd q"><div class="cl">Q4</div><h4>피드백</h4><p>시그널/브리핑 자연어 피드백 + 매매 결과(승/패) 자동 순환.</p></div>
+</div>
+<div class="hb rul">
+<strong>유저가 받는 것:</strong> 실시간 "나같은" 시그널 + 관심 이슈 자율 브리핑<br>
+<strong>유저가 하는 것:</strong> 요청, 질문, 피드백, 대화 — 모든 것이 Q로 수집되어 FORKER 강화
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 03 ===== -->
+<section class="sec" id="s03">
+<div class="sl">03</div>
+<h2>Q1 매매 감지 흐름 — "분신" 경험의 핵심</h2>
+<p>거래소에서 매매 감지 시 FORKER가 자동 반응. <strong>"얘가 내가 왜 들어갔는지 아네?"</strong></p>
+<div class="dw">
+<svg width="760" height="480" viewBox="0 0 760 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="270" y="15" width="220" height="40" rx="20" fill="rgba(123,97,255,.15)" stroke="#7b61ff" stroke-width="1.5"/>
+<text x="380" y="40" text-anchor="middle" fill="#7b61ff" font-family="Noto Sans KR" font-size="11" font-weight="600">거래소 API에서 매매 감지</text>
+<line x1="380" y1="55" x2="380" y2="85" stroke="#666" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="280" y="85" width="200" height="38" rx="8" fill="rgba(255,255,255,.04)" stroke="#666" stroke-width="1"/>
+<text x="380" y="108" text-anchor="middle" fill="#8888a0" font-family="JetBrains Mono" font-size="9">자동 필터 (극소액/입출금 → 스킵)</text>
+<line x1="380" y1="123" x2="380" y2="155" stroke="#666" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="250" y="155" width="260" height="50" rx="8" fill="rgba(0,212,170,.1)" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="380" y="176" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="10" font-weight="600">FORKER 근거 추론 (Opus)</text>
+<text x="380" y="194" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8.5">"이 유저라면 왜?" + 시장 상황 확인</text>
+<line x1="380" y1="205" x2="380" y2="235" stroke="#666" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="260" y="235" width="240" height="45" rx="8" fill="rgba(123,97,255,.1)" stroke="#7b61ff" stroke-width="1.5"/>
+<text x="380" y="256" text-anchor="middle" fill="#7b61ff" font-family="Noto Sans KR" font-size="10" font-weight="600">유저에게 확인 요청</text>
+<text x="380" y="272" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">"펀딩비 보고 들어간 거 맞지?" [맞아][아니야]</text>
+<line x1="380" y1="280" x2="380" y2="310" stroke="#666" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="280" y="310" width="200" height="36" rx="8" fill="rgba(0,212,170,.08)" stroke="#00d4aa" stroke-width="1"/>
+<text x="380" y="333" text-anchor="middle" fill="#00d4aa" font-family="Noto Sans KR" font-size="10">에피소드 저장 (Intelligence)</text>
+<!-- Right branch -->
+<line x1="510" y1="180" x2="580" y2="180" stroke="#4ecdc4" stroke-width="1.2" marker-end="url(#a)"/>
+<rect x="580" y="155" width="160" height="75" rx="8" fill="rgba(78,205,196,.08)" stroke="#4ecdc4" stroke-width="1"/>
+<text x="660" y="178" text-anchor="middle" fill="#4ecdc4" font-family="JetBrains Mono" font-size="9" font-weight="600">포지션 보유 중</text>
+<text x="660" y="196" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">코멘터리 (상황 읽어줌)</text>
+<text x="660" y="218" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">"너 평균 익절 +12%인데 넘었어"</text>
+<line x1="660" y1="230" x2="660" y2="265" stroke="#4ecdc4" stroke-width="1" marker-end="url(#a)"/>
+<rect x="580" y="265" width="160" height="40" rx="8" fill="rgba(255,217,61,.08)" stroke="#ffd93d" stroke-width="1"/>
+<text x="660" y="290" text-anchor="middle" fill="#ffd93d" font-family="Noto Sans KR" font-size="9">청산 감지 → 결과 자동 기록</text>
+<line x1="660" y1="305" x2="660" y2="340" stroke="#ffd93d" stroke-width="1" marker-end="url(#a)"/>
+<rect x="580" y="340" width="160" height="65" rx="8" fill="rgba(255,107,107,.08)" stroke="#ff6b6b" stroke-width="1"/>
+<text x="660" y="362" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="9" font-weight="600">손실 → 복기 제안</text>
+<text x="660" y="380" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">진입→시장변화→결과→교훈</text>
+<text x="660" y="396" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">Intelligence 영구 저장</text>
+<path d="M580 395 Q 400 440 380 346" stroke="#ff9f43" stroke-width="1.2" fill="none" stroke-dasharray="4,3" marker-end="url(#ao)"/>
+<!-- FOMO -->
+<rect x="15" y="155" width="200" height="58" rx="8" fill="rgba(255,107,107,.08)" stroke="#ff6b6b" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="115" y="178" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="9">⚠️ 위험 감지</text>
+<text x="115" y="198" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">FOMO / 연속 손실 과매매</text>
+<line x1="215" y1="180" x2="250" y2="180" stroke="#ff6b6b" stroke-width="1" stroke-dasharray="3,3"/>
+</svg>
+<p class="dc">Q1 — 감지 → 필터 → Opus 근거 추론 → 유저 확인 → 에피소드 + 코멘터리/복기</p>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 04 ===== -->
+<section class="sec" id="s04">
+<div class="sl">04</div>
+<h2>Q2 채팅 상세 흐름</h2>
+<p>채팅 LLM이 <strong>항상 Intelligence 참조</strong>하며 응답 + 의도 분류 동시 처리. 추가 LLM 호출 없음.</p>
+<div class="dw">
+<svg width="800" height="420" viewBox="0 0 800 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="300" y="15" width="200" height="40" rx="20" fill="rgba(123,97,255,.15)" stroke="#7b61ff" stroke-width="1.5"/>
+<text x="400" y="40" text-anchor="middle" fill="#7b61ff" font-family="Noto Sans KR" font-size="11" font-weight="600">유저 메시지</text>
+<line x1="400" y1="55" x2="400" y2="85" stroke="#666" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="290" y="85" width="220" height="38" rx="8" fill="rgba(0,212,170,.1)" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="400" y="109" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="10" font-weight="600">채팅 LLM (Intelligence 참조)</text>
+<!-- branches -->
+<line x1="310" y1="123" x2="95" y2="165" stroke="#ffd93d" stroke-width="1.1"/><line x1="365" y1="123" x2="290" y2="165" stroke="#ff6b6b" stroke-width="1.1"/><line x1="435" y1="123" x2="510" y2="165" stroke="#7b61ff" stroke-width="1.1"/><line x1="490" y1="123" x2="700" y2="165" stroke="#888" stroke-width="1.1"/>
+<rect x="10" y="165" width="170" height="48" rx="8" fill="rgba(255,217,61,.1)" stroke="#ffd93d" stroke-width="1.5"/>
+<text x="95" y="186" text-anchor="middle" fill="#ffd93d" font-family="JetBrains Mono" font-size="8.5" font-weight="600">2-1 경량 알림</text>
+<text x="95" y="203" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="7.5">"BTC 10만 알려줘"</text>
+<text x="95" y="228" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="7.5">→ Base+Trigger 등록 ❌Intel 안거침</text>
+<rect x="205" y="165" width="170" height="48" rx="8" fill="rgba(255,107,107,.1)" stroke="#ff6b6b" stroke-width="1.5"/>
+<text x="290" y="186" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="8.5" font-weight="600">2-2 시그널 트리거</text>
+<text x="290" y="203" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="7.5">"거래대금 터지면 브리핑"</text>
+<text x="290" y="228" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="7.5">→ Intel 저장 + Base+Trigger 등록</text>
+<rect x="425" y="165" width="170" height="48" rx="8" fill="rgba(123,97,255,.1)" stroke="#7b61ff" stroke-width="1.5"/>
+<text x="510" y="186" text-anchor="middle" fill="#7b61ff" font-family="JetBrains Mono" font-size="8.5" font-weight="600">2-4 시장 질문</text>
+<text x="510" y="203" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="7.5">"VANA 왜 올라?"</text>
+<text x="510" y="228" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="7.5">→ 자율서치 + Intel 저장</text>
+<rect x="620" y="165" width="160" height="48" rx="8" fill="rgba(255,255,255,.05)" stroke="#666" stroke-width="1"/>
+<text x="700" y="186" text-anchor="middle" fill="#8888a0" font-family="JetBrains Mono" font-size="8.5" font-weight="600">기타 대화</text>
+<text x="700" y="203" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="7.5">토론, 복기, 잡담</text>
+<text x="700" y="228" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="7.5">→ Intel 바탕 대화, 필요시 저장</text>
+<rect x="180" y="380" width="440" height="32" rx="8" fill="rgba(255,159,67,.08)" stroke="#ff9f43" stroke-width="1"/>
+<text x="400" y="401" text-anchor="middle" fill="#ff9f43" font-family="Noto Sans KR" font-size="8.5">2-3: 수치 정의 불가 → 유저 고지 + 구체화 제안 → Patrol에서 LLM 평가 (③)</text>
+</svg>
+</div>
+<div class="hb rul"><strong>핵심:</strong> 모든 분류는 채팅 응답 중 동시 처리. 추가 LLM 호출 없음, 비용 0.</div>
+
+<h3>이미지 입력 (차트 캡처 분석)</h3>
+<p>유저가 <strong>차트 캡처 + 자신의 의견</strong>을 함께 보내면, LLM(Claude Vision)이 이미지를 분석하고 유저 의견과 실제 차트를 대조.</p>
+<div class="sf">
+<span class="ss" style="border-color:#7b61ff;color:#7b61ff">유저: 차트📸 + "쐐기 패턴 같은데?"</span><span class="sa">→</span>
+<span class="ss" style="border-color:#00d4aa;color:#00d4aa">LLM 이미지 분석</span><span class="sa">→</span>
+<span class="ss" style="border-color:#ffd93d;color:#ffd93d">유저 해석 vs 실제 차트 대조</span><span class="sa">→</span>
+<span class="ss" style="border-color:#00d4aa;color:#00d4aa">Intelligence 저장</span>
+</div>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">📸</div><div class="dd"><strong>학습 대상</strong><p>유저의 기술적 분석 성향 — 패턴 인식 방식, 지지/저항 판단 기준, 선호 타임프레임, 보조지표 활용법</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">✓</div><div class="dd"><strong>검증</strong><p>"쐐기 패턴"이라고 했는데 실제로 맞는지 대조. 맞으면 유저 분석력 신뢰도↑, 틀리면 캘리브레이션 데이터로 활용</p></div></div>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 05 ===== -->
+<section class="sec" id="s05">
+<div class="sl">05</div>
+<h2>API — 외부 데이터 소스</h2>
+<div class="cg">
+<div class="cd t1"><div class="cl">거래소</div><h4>바이낸스 · 업비트 · 빗썸</h4><p>WebSocket 시세 + 매매 감지 + 포지션 추적</p></div>
+<div class="cd t1"><div class="cl">뉴스</div><h4>KR + Global 뉴스</h4><p>코인니스, CryptoPanic 등. 06 상세 참조</p></div>
+<div class="cd t1"><div class="cl">마켓</div><h4>CMC · CoinGlass · CoinGecko</h4><p>시총, 롱숏비, OI, 청산, Fear&Greed</p></div>
+<div class="cd t1"><div class="cl">확장</div><h4>LLM 동적 추가</h4><p>유저 패턴에 따라 자동 추가</p></div>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 06 ===== -->
+<section class="sec" id="s06">
+<div class="sl">06</div>
+<h2>뉴스/이슈 소스 상세</h2>
+<p><strong>한국어 + 영어</strong> 양쪽 커버. 유저 언어 설정에 따라 우선순위 자동 조정.</p>
+<h3>API 연결 소스 (실시간)</h3>
+<table class="tb">
+<thead><tr><th>소스</th><th>언어</th><th>연결</th><th>비용</th><th>비고</th></tr></thead>
+<tbody>
+<tr><td><strong>CryptoPanic</strong></td><td><span class="tg tg-g">Global</span><span class="tg tg-k">KR</span></td><td><span class="tg tg-a">API</span></td><td><span class="tg tg-f">무료~</span></td><td>뉴스 어그리게이터 + 센티먼트. 다국어.</td></tr>
+<tr><td><strong>free-crypto-news</strong></td><td><span class="tg tg-g">Global</span></td><td><span class="tg tg-a">API</span></td><td><span class="tg tg-f">무료</span></td><td>오픈소스. API키 불필요. 200+ 소스. 베타 적합.</td></tr>
+<tr><td><strong>CryptoNews API</strong></td><td><span class="tg tg-g">Global</span></td><td><span class="tg tg-a">API</span></td><td><span class="tg tg-p">유료</span></td><td>CoinTelegraph, CoinDesk 등 인덱싱.</td></tr>
+<tr><td><strong>코인니스</strong></td><td><span class="tg tg-k">KR</span></td><td><span class="tg tg-c">크롤링</span></td><td><span class="tg tg-f">무료</span></td><td>한국 속보 1위. WebSocket/RSS 준실시간.</td></tr>
+</tbody>
+</table>
+<h3>Patrol 브라우징 소스 (주기별)</h3>
+<table class="tb">
+<thead><tr><th>소스</th><th>언어</th><th>용도</th></tr></thead>
+<tbody>
+<tr><td>블루밍비트 / 블록미디어</td><td><span class="tg tg-k">KR</span></td><td>한국 크립토 뉴스/분석</td></tr>
+<tr><td>CoinTelegraph / The Block</td><td><span class="tg tg-g">Global</span></td><td>글로벌 미디어/딥리서치</td></tr>
+<tr><td>거래소 공지</td><td><span class="tg tg-k">KR</span><span class="tg tg-g">Global</span></td><td>상장, 이벤트, 입출금 공지</td></tr>
+<tr><td>X (Twitter)</td><td><span class="tg tg-g">Global</span></td><td>프로젝트 공식, 인플루언서</td></tr>
+</tbody>
+</table>
+<h3>다국어 처리</h3>
+<p>한국어 유저도 영어 뉴스 수집. 영어 유저도 한국 시장 뉴스 수집. LLM이 유저 언어로 번역/요약. 서치도 양쪽 소스 모두 검색.</p>
+</section><div class="sep"></div>
+
+<!-- ===== 07 ===== -->
+<section class="sec" id="s07">
+<div class="sl">07</div>
+<h2>Intelligence Module — FORKER의 뇌</h2>
+<p><strong>에피소드</strong> 단위 기억. 모든 대화/판단이 이 모듈 참조.</p>
+<h3>에피소드 생성 트리거</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.15);color:#7b61ff">Q1</div><div class="dd"><strong>매매 감지 시</strong><p>매매 + 추론/확인 근거 + 시장 상황 + 결과 + 복기 교훈</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">Q2</div><div class="dd"><strong>채팅에서 LLM이 "기억할 만하다" 판단</strong></div></div>
+<div class="di"><div class="dm" style="background:rgba(255,159,67,.12);color:#ff9f43">Q4</div><div class="dd"><strong>시그널/브리핑 피드백 + 매매 결과(승/패)</strong></div></div>
+</div>
+<h3>에피소드 시장 상황 수집</h3>
+<p><strong>참조 범위 = 전체</strong> (API + Tier 1 Base 전체 + 웹 브라우징). <strong>저장 = LLM이 관련 있는 것만 선별</strong> 텍스트 요약.</p>
+<div class="sf">
+<span class="ss">트리거</span><span class="sa">→</span>
+<span class="ss" style="border-color:#4ecdc4;color:#4ecdc4">전체 풀 참조</span><span class="sa">→</span>
+<span class="ss" style="border-color:#ffd93d;color:#ffd93d">없으면 브라우징</span><span class="sa">→</span>
+<span class="ss" style="border-color:#00d4aa;color:#00d4aa">LLM 선별</span><span class="sa">→</span>
+<span class="ss">텍스트 요약 저장</span>
+</div>
+<h3>유저 표현 캘리브레이션 + 스타일 학습</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">✓</div><div class="dd"><strong>유저 말 검증</strong><p>발언 vs 실제 데이터 대조</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">📏</div><div class="dd"><strong>표현 정도</strong><p>"좀 빠진다"=-3%, "많이 빠졌다"=-8%. 다국어 학습.</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">🗣️</div><div class="dd"><strong>표현 스타일</strong><p>말투, 용어, 분석 깊이, 관심 영역, 사용 언어</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">📊</div><div class="dd"><strong>차트 분석 성향</strong><p>유저가 보내는 차트 캡처에서 패턴 인식 방식, 지지/저항 판단, 선호 타임프레임, 보조지표 활용 학습</p></div></div>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 08 ===== -->
+<section class="sec" id="s08">
+<div class="sl">08</div>
+<h2>에피소드 상세 구조</h2>
+<div class="dw">
+<svg width="660" height="310" viewBox="0 0 660 310" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="15" y="15" width="630" height="280" rx="14" fill="rgba(0,212,170,.04)" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="330" y="44" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="12" font-weight="700">에피소드 (Episode)</text>
+<rect x="30" y="62" width="280" height="218" rx="10" fill="rgba(78,205,196,.08)" stroke="#4ecdc4" stroke-width="1"/>
+<text x="170" y="84" text-anchor="middle" fill="#4ecdc4" font-family="JetBrains Mono" font-size="10" font-weight="600">시장 상황 (검증됨)</text>
+<text x="48" y="108" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• 관련 종목 가격/변동률</text>
+<text x="48" y="128" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• 거래대금/펀딩비/OI</text>
+<text x="48" y="148" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• 관련 뉴스/이벤트</text>
+<text x="48" y="168" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• BTC/ETH 전체 시장</text>
+<text x="48" y="188" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• 기술 지표 (RSI, MACD 등)</text>
+<text x="48" y="216" fill="#4ecdc4" font-family="Noto Sans KR" font-size="8">※ 전체 풀에서 LLM 선별 요약</text>
+<text x="48" y="236" fill="#ffd93d" font-family="Noto Sans KR" font-size="8">※ 유저 발언 vs 실제 수치 검증</text>
+<text x="48" y="256" fill="#ffd93d" font-family="Noto Sans KR" font-size="8">※ 없으면 브라우징 → Base 추가</text>
+<rect x="330" y="62" width="300" height="218" rx="10" fill="rgba(123,97,255,.08)" stroke="#7b61ff" stroke-width="1"/>
+<text x="480" y="84" text-anchor="middle" fill="#7b61ff" font-family="JetBrains Mono" font-size="10" font-weight="600">유저 데이터</text>
+<text x="348" y="108" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• 유저 발화/행동 원문</text>
+<text x="348" y="128" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• 매매 데이터 (종목/방향/크기)</text>
+<text x="348" y="148" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• 추론/확인된 근거</text>
+<text x="348" y="168" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• 매매 결과 (손익)</text>
+<text x="348" y="188" fill="#8888a0" font-family="Noto Sans KR" font-size="9">• 시그널 피드백 + 복기 교훈</text>
+<text x="348" y="216" fill="#7b61ff" font-family="Noto Sans KR" font-size="8">✓ 발언검증 / 📏 표현정도 / 🗣️ 스타일</text>
+<text x="348" y="236" fill="#ff9f43" font-family="Noto Sans KR" font-size="8">※ 벡터 임베딩 → 유사 상황 검색</text>
+</svg>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 09 ===== -->
+<section class="sec" id="s09">
+<div class="sl">09</div>
+<h2>Tier 1 — 실시간 감시 (3 레이어)</h2>
+<div class="cg" style="grid-template-columns:1fr 1fr 1fr">
+<div class="cd t1"><div class="cl">BASE</div><h4>실시간 데이터 스트림</h4><p>기본 프리셋 + LLM 동적 추가. 🔴Hot/🟡Warm/🔵Cold 온도 관리. AI 미사용, 비용 0.</p></div>
+<div class="cd t2"><div class="cl">USER TRIGGER</div><h4>Base 데이터 실시간 매칭</h4><p>🔔 경량 알림 즉시. 🎯 시그널(구조화 조건) 준실시간. 🧠 LLM 평가 → Patrol. 3단계 트리거.</p></div>
+<div class="cd i"><div class="cl">PATROL</div><h4>자율 순찰 (티어별 주기)</h4><p>한국어+영어 소스 브라우징. Intelligence 기반 능동 서치. LLM 사용.</p></div>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 10 ===== -->
+<section class="sec" id="s10">
+<div class="sl">10</div>
+<h2>Tier 1 Base — 동적 데이터 스트림</h2>
+<h3>기본 프리셋 (Default Base) — 모든 유저 공통</h3>
+<div class="cg" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+<div class="cd t1"><div class="cl">시세</div><h4>BTC/ETH + Top 20</h4><p>CMC 시총 기준</p></div>
+<div class="cd t1"><div class="cl">파생</div><h4>펀딩비 · OI · 청산</h4><p>바이낸스 주요 종목</p></div>
+<div class="cd t1"><div class="cl">뉴스</div><h4>CryptoPanic + 코인니스</h4><p>글로벌+한국 실시간</p></div>
+<div class="cd t1"><div class="cl">지표</div><h4>Fear&Greed · 김프</h4><p>시장 심리 + 한국 프리미엄</p></div>
+<div class="cd t1"><div class="cl">거래소 스프레드</div><h4>거래소 간 시세 차이</h4><p>업비트 vs 빗썸 vs 바이낸스 동일 종목 비교</p></div>
+<div class="cd t1"><div class="cl">유저 거래소</div><h4>연결된 거래소</h4><p>매매 감지용 포지션/잔고</p></div>
+</div>
+<h3>확장 트리거</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">1</div><div class="dd"><strong>유저 요청/질문</strong><p>없는 데이터 물어보면 조회 후 추가</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">2</div><div class="dd"><strong>에피소드 생성 시 데이터 없을 때</strong><p>브라우징 후 추가</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">3</div><div class="dd"><strong>LLM 자동 추가</strong><p>"이 유저는 상장 뉴스에 반응" → 관련 스트림 추가</p></div></div>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 11 ===== -->
+<section class="sec" id="s11">
+<div class="sl">11</div>
+<h2>Tier 1 Base 온도 관리</h2>
+<p>삭제 대신 <strong>3단계 온도</strong>로 관리. 데이터는 절대 삭제하지 않음.</p>
+<table class="tb">
+<thead><tr><th>상태</th><th>조건</th><th>동작</th><th>비용</th></tr></thead>
+<tbody>
+<tr><td style="color:#ff6b6b"><strong>🔴 Hot</strong></td><td>최근 7일 내 언급</td><td>실시간 스트리밍 (WebSocket)</td><td>API 호출</td></tr>
+<tr><td style="color:#ffd93d"><strong>🟡 Warm</strong></td><td>7~30일 미언급</td><td>폴링 주기 낮춤 (30분)</td><td>소량</td></tr>
+<tr><td style="color:#4ecdc4"><strong>🔵 Cold</strong></td><td>30일+ 미언급</td><td>스트림 중단. Patrol에서만 체크. DB 보관.</td><td>≈ 0</td></tr>
+</tbody>
+</table>
+<div class="hb inf">
+<strong>핵심:</strong> ① 영원히 삭제 안 함 (유저 신뢰) ② Hot만 실시간 비용 (비용 최적화) ③ 재언급 시 Cold→Hot 즉시 복원 (UX)
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 12 ===== -->
+<section class="sec" id="s12">
+<div class="sl">12</div>
+<h2>Tier 1 User Trigger — 3단계 트리거 체계</h2>
+<p>유저 요청을 <strong>최대한 실시간으로 처리</strong>하는 것이 원칙. 채팅 LLM이 요청을 분석하여 3단계 중 가장 빠른 경로로 자동 분류.</p>
+<div class="cg" style="grid-template-columns:1fr 1fr 1fr">
+<div class="cd t2"><div class="cl">① 경량 알림 🔔</div><h4>단순 조건 → 즉시</h4><p>Base 데이터 실시간 매칭. LLM 없음. 비용 0.<br><br><strong>예:</strong> "BTC 10만 되면 알려줘"</p></div>
+<div class="cd t3"><div class="cl">② 시그널 트리거 🎯</div><h4>구조화 가능 → 준실시간</h4><p>LLM이 조건을 코드 로직으로 분해. 필요 데이터 Base에 Hot 추가. ~5분 폴링.<br><br><strong>예:</strong> "업비트 거래량 상위 3개가 BTC보다 높으면"</p></div>
+<div class="cd i"><div class="cl">③ LLM 평가 🧠</div><h4>수치 정의 불가 → Patrol</h4><p>Base에 추가 불가능하거나 수치로 정의할 수 없는 조건. Patrol에서 LLM이 주기적 평가.<br><br><strong>예:</strong> "시장 분위기가 공포로 전환되면"</p></div>
+</div>
+
+<h3>② 시그널 트리거 처리 흐름</h3>
+<div class="sf">
+<span class="ss" style="border-color:#7b61ff;color:#7b61ff">유저: "거래량 상위 3개 > BTC면 알려줘"</span><span class="sa">→</span>
+<span class="ss" style="border-color:#00d4aa;color:#00d4aa">LLM 조건 분해</span><span class="sa">→</span>
+<span class="ss" style="border-color:#4ecdc4;color:#4ecdc4">Base에 데이터 Hot 추가</span><span class="sa">→</span>
+<span class="ss" style="border-color:#ffd93d;color:#ffd93d">코드 폴링 매칭 (~5분)</span><span class="sa">→</span>
+<span class="ss" style="border-color:#ff6b6b;color:#ff6b6b">충족 → Tier 2→3</span>
+</div>
+<p>복잡해 보이는 조건도 <strong>분해하면 코드로 실시간 체크 가능한 경우가 많다.</strong> LLM이 조건을 프로그래밍 로직으로 분해하고, 필요한 데이터를 Base에 Hot 스트림으로 추가하여 준실시간 처리.</p>
+
+<h3>③ LLM 평가 시 유저 안내</h3>
+<div class="hb wrn">
+③으로 분류될 때, FORKER는 단순히 "기다려"가 아닌 <strong>"실시간 가능한 요청은 실시간으로 설정 가능"</strong>을 안내하고, 조건 구체화를 제안한다.<br><br>
+예: "시장 분위기가 공포로 전환되면" → "이건 내가 주기적으로 체크할게. 만약 <strong>'Fear&Greed 25 이하면'</strong> 같이 구체화하면 실시간 감시로 전환할 수도 있어!"
+</div>
+
+<p><strong>생성 주체:</strong> 유저 직접 요청 (채팅 LLM이 ①②③ 자동 분류) 또는 LLM이 Intelligence 기반 자동 생성 (72시간 무반응 시 자동 삭제).</p>
+</section><div class="sep"></div>
+
+<!-- ===== 13 ===== -->
+<section class="sec" id="s13">
+<div class="sl">13</div>
+<h2>Tier 1 Patrol — 자율 순찰</h2>
+<p>티어별 주기: Basic 3h / Pro 1h / Enterprise 30min. 한국어+영어 소스 모두 순찰.</p>
+<h3>순찰 범위</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(78,205,196,.12);color:#4ecdc4">1</div><div class="dd"><strong>Base 전체 종합 체크</strong></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">2</div><div class="dd"><strong>③ LLM 평가 트리거 판단</strong><p>①경량 알림, ②시그널 트리거는 Base에서 실시간/준실시간 처리됨. Patrol은 수치 정의 불가능한 <strong>③ llm_evaluated 트리거만 담당</strong>. 필요 데이터 수집(브라우징, 뉴스, 소셜) → LLM 판단 → 조건 충족 시 Tier 2→3.</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(78,205,196,.12);color:#4ecdc4">3</div><div class="dd"><strong>브라우징 필요 데이터</strong><p>코인글래스, 거래소 공지, 블루밍비트, The Block</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(78,205,196,.12);color:#4ecdc4">4</div><div class="dd"><strong>유저 패턴 기반 능동 서치</strong></div></div>
+<div class="di"><div class="dm" style="background:rgba(78,205,196,.12);color:#4ecdc4">5</div><div class="dd"><strong>실시간 불가 요청(2-3) 처리</strong></div></div>
+</div>
+<h3>추가 역할</h3>
+<p>Base 온도 관리 (Hot/Warm/Cold 전환), User Trigger 자동 생성/갱신/삭제</p>
+</section><div class="sep"></div>
+
+<!-- ===== 14 ===== -->
+<section class="sec" id="s14">
+<div class="sl">14</div>
+<h2>Tier 2 — 심층 수집</h2>
+<p>시그널 트리거 발동 시, Intelligence 기반 심층 수집.</p>
+<div class="sf">
+<span class="ss" style="border-color:#4ecdc4;color:#4ecdc4">① Base</span><span class="sa">→</span>
+<span class="ss" style="border-color:#4ecdc4;color:#4ecdc4">② API</span><span class="sa">→</span>
+<span class="ss" style="border-color:#ffd93d;color:#ffd93d">③ 웹 검색</span><span class="sa">→</span>
+<span class="ss" style="border-color:#ff6b6b;color:#ff6b6b">④ Playwright</span>
+</div>
+<p>①~②로 충분하면 ③~④ 안 씀. 한국어+영어 모두 수집.</p>
+</section><div class="sep"></div>
+
+<!-- ===== 15 ===== -->
+<section class="sec" id="s15">
+<div class="sl">15</div>
+<h2>Tier 3 — AI 판단</h2>
+<p>Tier 2 수집 + Intelligence → <strong>"너처럼 봤을 때"</strong> 판단. 티어별 AI 모델 차등.</p>
+<h3>판단 입력</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(255,217,61,.12);color:#ffd93d">📊</div><div class="dd"><strong>Tier 2 수집 데이터</strong></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">🧠</div><div class="dd"><strong>Intelligence Module</strong><p>에피소드, 투자 원칙, 매매 패턴, 캘리브레이션, 스타일</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">📍</div><div class="dd"><strong>유저 현재 상태</strong><p>보유 포지션, 최근 결과, 대화 맥락</p></div></div>
+</div>
+<h3>판단 출력</h3>
+<div class="cg" style="grid-template-columns:1fr 1fr">
+<div class="cd t3"><div class="cl">매매 시그널</div><h4>"너처럼 봤을 때"</h4><p>진입/청산/관망 + Reasoning + 반대근거 + 확신도 + 손절 + 관련 차트</p></div>
+<div class="cd i"><div class="cl">자율 브리핑</div><h4>알아야 할 이슈</h4><p>유저 패턴상 관심 가질 상황 + 근거 + 관련 차트</p></div>
+</div>
+<div class="hb rul"><strong>톤:</strong> "FORKER 추천"이 아닌 <strong>"너처럼 봤을 때"</strong>. 유저 설정 언어로 전달.</div>
+
+<h3>차트/이미지 첨부</h3>
+<p>시그널, 자율 브리핑, 시장 질문 답변 시 <strong>관련 차트 스크린샷을 함께 전송</strong>. 텍스트만으로는 전달이 어려운 시각 정보를 보완.</p>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(78,205,196,.12);color:#4ecdc4">📸</div><div class="dd"><strong>Playwright 차트 캡처</strong><p>TradingView 등에서 관련 종목 차트를 실시간 스크린샷. Patrol에서 이미 Playwright 사용 중이므로 추가 인프라 없음.</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">🎯</div><div class="dd"><strong>LLM이 첨부 판단</strong><p>모든 메시지에 차트를 보내는 게 아니라, "차트가 있으면 이해에 도움되는 상황"에서만 첨부. 시그널(진입/청산), 브리핑(급등/급락), 시장 질문("왜 올라?") 등.</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(255,217,61,.12);color:#ffd93d">⏱️</div><div class="dd"><strong>캡처 대상</strong><p>해당 종목 1h/4h/1D 캔들 차트 + 주요 기술지표(RSI, 볼밴 등). LLM이 상황에 맞는 타임프레임 선택.</p></div></div>
+</div>
+<div class="hb inf"><strong>비용:</strong> Playwright 캡처는 기존 인프라 활용. 추가 비용 ≈ 0. 텔레그램 이미지 전송도 무료.</div>
+</section><div class="sep"></div>
+
+<!-- ===== 16 ===== -->
+<section class="sec" id="s16">
+<div class="sl">16</div>
+<h2>Feedback — 순환 학습</h2>
+<div class="fh">
+<div class="fb- ft3">시그널/브리핑</div><span class="fa">→</span>
+<div class="fb- fq">유저 피드백(Q4)</div><span class="fa">→</span>
+<div class="fb- fi">Intelligence 학습</div><span class="fa">→</span>
+<div class="fb- ft1">감시 정확도 ↑</div>
+</div>
+<h3>피드백 유형</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">💬</div><div class="dd"><strong>시그널/브리핑 피드백 (자연어)</strong><p>동의→강화, 반대→교정, 세부조정→반영</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(255,159,67,.12);color:#ff9f43">📈</div><div class="dd"><strong>매매 결과 (자동)</strong><p>시그널 후 매매→결과 자동 감지→Q1+Intelligence 동시 교정</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">🔄</div><div class="dd"><strong>매매 근거 확인</strong><p>FORKER 추론 맞으면 강화, 틀리면 교정</p></div></div>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 17 ===== -->
+<section class="sec" id="s17">
+<div class="sl">17</div>
+<h2>채팅 자율 서치</h2>
+<p>시장 질문 시 최적 소스 검색. 한국어 질문→영어 소스 포함, 영어 질문→한국 소스 포함.</p>
+<div class="sf">
+<span class="ss" style="border-color:#4ecdc4;color:#4ecdc4">① Base (0)</span><span class="sa">→</span>
+<span class="ss" style="border-color:#4ecdc4;color:#4ecdc4">② API</span><span class="sa">→</span>
+<span class="ss" style="border-color:#ffd93d;color:#ffd93d">③ 웹 검색</span><span class="sa">→</span>
+<span class="ss" style="border-color:#ff6b6b;color:#ff6b6b">④ 브라우징</span>
+</div>
+<p>기억할 만하면 Intelligence 에피소드 저장. 시각 정보가 도움되는 질문에는 <strong>관련 차트 스크린샷 함께 전송</strong> (Playwright 캡처).</p>
+</section><div class="sep"></div>
+
+<!-- ===== 18 텔레그램 + 싱크로율 ===== -->
+<section class="sec" id="s18">
+<div class="sl">18</div>
+<h2>텔레그램 명령어 + 싱크로율</h2>
+<p>Telegram Mini App은 사용하지 않음. 4개 명령어로 운영.</p>
+<table class="tb">
+<thead><tr><th>명령어</th><th>기능</th><th>비고</th></tr></thead>
+<tbody>
+<tr><td style="color:#00d4aa;font-family:'JetBrains Mono',monospace">/start</td><td>유저 등록 + 온보딩 시작</td><td>거래소 API 등록 → 투자 스타일 입력 → 초기 리포트</td></tr>
+<tr><td style="color:#00d4aa;font-family:'JetBrains Mono',monospace">/sync</td><td>현재 싱크로율 조회</td><td>학습 완성도 + 판단 일치율 복합 지표</td></tr>
+<tr><td style="color:#00d4aa;font-family:'JetBrains Mono',monospace">/principles</td><td>투자 원칙 조회/수정</td><td>Q3 데이터. 추가/수정/삭제/전체교체 자유. LLM이 의도 자동 분류.</td></tr>
+<tr><td style="color:#00d4aa;font-family:'JetBrains Mono',monospace">/help</td><td>모든 명령어 + 대화 가이드</td><td>명령어 + 자유 대화 예시 안내</td></tr>
+</tbody>
+</table>
+
+<h3>싱크로율 (Sync Rate) 정의</h3>
+<p><strong>"FORKER의 투자지능이 내 투자지능과 얼마나 일치하는가"</strong> — 복합 지표.</p>
+<div class="cmd">싱크로율 = (학습 완성도 × 0.4) + (판단 일치율 × 0.6)</div>
+
+<div class="cg" style="grid-template-columns:1fr 1fr">
+<div class="cd i">
+<div class="cl">학습 완성도 (40%)</div>
+<h4>FORKER가 너를 얼마나 아는가</h4>
+<p>거래소 연결 수, 투자 원칙 설정 여부/구체성, 누적 에피소드 수, 대화 빈도/깊이</p>
+</div>
+<div class="cd t3">
+<div class="cl">판단 일치율 (60%)</div>
+<h4>FORKER 판단이 너와 얼마나 맞는가</h4>
+<p>시그널 동의율, 시그널 후 실제 매매 일치율, 근거 추론 적중률</p>
+</div>
+</div>
+
+<p>초기에는 판단 데이터 없으므로 학습 완성도 위주 → 쓸수록 판단 일치율 비중 상승.</p>
+
+<h3>/sync 출력 예시</h3>
+<div class="sc">
+<div class="m mf" style="margin-right:0">
+🔄 <strong>싱크로율: 47%</strong><br><br>
+📚 학습 완성도: 62%<br>
+&nbsp;&nbsp;· 거래소 연결: 2/3<br>
+&nbsp;&nbsp;· 에피소드: 23개<br>
+&nbsp;&nbsp;· 투자 원칙: 3개 설정됨<br><br>
+🎯 판단 일치율: 37%<br>
+&nbsp;&nbsp;· 시그널 동의율: 4/8 (50%)<br>
+&nbsp;&nbsp;· 근거 추론 적중: 3/10 (30%)<br>
+&nbsp;&nbsp;· 아직 데이터 수집 중...<br><br>
+💡 피드백을 자주 해주면 FORKER가 더 빨리 배워!
+</div>
+</div>
+
+<h3>/principles 상세 — 추가/수정/삭제/전체교체</h3>
+<p><strong>/principles</strong> 입력 후 유저 메시지를 LLM이 의도 분류하여 4가지 조작을 자동 처리.</p>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">+</div><div class="dd"><strong>추가</strong><p>"레버리지 최대 10배 추가해줘" → 기존 유지 + 새 원칙 추가</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(255,217,61,.12);color:#ffd93d">✎</div><div class="dd"><strong>수정</strong><p>"1번 -5%를 -7%로 바꿔" → 해당 원칙만 수정</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(255,107,107,.12);color:#ff6b6b">−</div><div class="dd"><strong>삭제</strong><p>"3번 삭제해" → 해당 원칙 비활성화</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">⟳</div><div class="dd"><strong>전체교체</strong><p>"전부 바꿀게. 손절 -3%, 레버리지 5배" → 기존 전체 비활성화 + 새로 생성</p></div></div>
+</div>
+<div class="hb inf"><strong>핵심:</strong> LLM이 유저 의도를 자동 분류. "추가해줘"/"바꿔"/"삭제해" 등 자연어로 자유롭게 관리. /principles 후 60초 타임아웃 시 자동 해제 → 일반 채팅 복귀.</div>
+
+<h3>/help 출력 내용</h3>
+<div class="sc">
+<div class="m mf" style="margin-right:0">
+🔧 <strong>TRADEFORK 명령어</strong><br><br>
+/start — 처음 시작 + 온보딩<br>
+/sync — 싱크로율 조회<br>
+/principles — 투자 원칙 조회/수정 (추가/수정/삭제 자유)<br>
+/help — 이 안내<br><br>
+💡 <strong>명령어 없이 자유롭게 대화해도 돼!</strong><br><br>
+📊 시장 질문<br>
+&nbsp;&nbsp;· 'VANA 왜 올라?'<br>
+&nbsp;&nbsp;· 'ETH 펀딩비 어때?'<br><br>
+🔔 시장 요청 (알림 + 브리핑)<br>
+&nbsp;&nbsp;· 'BTC 10만 되면 알려줘'<br>
+&nbsp;&nbsp;· '업비트 거래량 상위 3개가 BTC보다 높으면 알려줘'<br>
+&nbsp;&nbsp;· '거래대금 터지면 분석해줘'<br>
+&nbsp;&nbsp;· 'SOL 펀딩비 -0.1% 이하면 브리핑'<br><br>
+📸 차트 분석<br>
+&nbsp;&nbsp;· 차트 캡처 보내면 패턴/지지·저항 분석<br><br>
+🔄 복기<br>
+&nbsp;&nbsp;· '어제 SOL 매매 복기해줘'<br><br>
+💬 잡담도 OK — 전부 FORKER 학습에 반영돼!
+</div>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 19 온보딩 ===== -->
+<section class="sec" id="s19">
+<div class="sl">19</div>
+<h2>온보딩 설계 — 콜드 스타트 해결</h2>
+
+<div class="dw">
+<svg width="780" height="460" viewBox="0 0 780 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+<text x="390" y="25" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="12" font-weight="700">온보딩 플로우</text>
+<!-- Step 1 -->
+<rect x="260" y="45" width="260" height="40" rx="20" fill="rgba(123,97,255,.15)" stroke="#7b61ff" stroke-width="1.5"/>
+<text x="390" y="70" text-anchor="middle" fill="#7b61ff" font-family="JetBrains Mono" font-size="10" font-weight="600">① /start 명령어 입력</text>
+<line x1="390" y1="85" x2="390" y2="110" stroke="#666" stroke-width="1.5" marker-end="url(#a)"/>
+<!-- Step 2 -->
+<rect x="220" y="110" width="340" height="55" rx="8" fill="rgba(78,205,196,.08)" stroke="#4ecdc4" stroke-width="1.5"/>
+<text x="390" y="132" text-anchor="middle" fill="#4ecdc4" font-family="JetBrains Mono" font-size="10" font-weight="600">② 거래소 API 등록</text>
+<text x="390" y="152" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8.5">업비트/바이낸스/빗썸 · 읽기전용만 · 등록 방법 안내</text>
+<line x1="390" y1="165" x2="390" y2="190" stroke="#666" stroke-width="1.5" marker-end="url(#a)"/>
+<!-- Step 3 -->
+<rect x="220" y="190" width="340" height="55" rx="8" fill="rgba(255,217,61,.08)" stroke="#ffd93d" stroke-width="1.5"/>
+<text x="390" y="212" text-anchor="middle" fill="#ffd93d" font-family="JetBrains Mono" font-size="10" font-weight="600">③ 최근 30일 매매 내역 자동 수집</text>
+<text x="390" y="232" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8.5">LLM이 패턴 분석 → 초기 에피소드 자동 생성</text>
+<line x1="390" y1="245" x2="390" y2="270" stroke="#666" stroke-width="1.5" marker-end="url(#a)"/>
+<!-- Step 4 -->
+<rect x="220" y="270" width="340" height="55" rx="8" fill="rgba(123,97,255,.08)" stroke="#7b61ff" stroke-width="1.5"/>
+<text x="390" y="292" text-anchor="middle" fill="#7b61ff" font-family="JetBrains Mono" font-size="10" font-weight="600">④ 투자 스타일 + 원칙 자유 입력</text>
+<text x="390" y="312" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8.5">FORKER가 자동 분리 → Intelligence 시드 + Q3 원칙</text>
+<line x1="390" y1="325" x2="390" y2="350" stroke="#666" stroke-width="1.5" marker-end="url(#a)"/>
+<!-- Step 5 -->
+<rect x="220" y="350" width="340" height="55" rx="8" fill="rgba(0,212,170,.1)" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="390" y="372" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="10" font-weight="600">⑤ 초기 리포트 + 싱크로율 + 기능 안내</text>
+<text x="390" y="392" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8.5">"너의 최근 한 달 매매 분석" → 싱크로율 ~50% 시작</text>
+<!-- Side notes -->
+<rect x="15" y="190" width="185" height="55" rx="8" fill="rgba(255,107,107,.06)" stroke="#ff6b6b" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="107" y="212" text-anchor="middle" fill="#ff6b6b" font-family="Noto Sans KR" font-size="8.5" font-weight="500">Opus로 분석</text>
+<text x="107" y="230" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">첫인상 = 유저 신뢰</text>
+<line x1="200" y1="217" x2="220" y2="217" stroke="#ff6b6b" stroke-width="1" stroke-dasharray="3,3"/>
+<rect x="580" y="270" width="185" height="55" rx="8" fill="rgba(123,97,255,.06)" stroke="#7b61ff" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="672" y="292" text-anchor="middle" fill="#7b61ff" font-family="Noto Sans KR" font-size="8.5">한 번에 자유롭게 입력</text>
+<text x="672" y="310" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">FORKER가 스타일/원칙 분리</text>
+<line x1="560" y1="297" x2="580" y2="297" stroke="#7b61ff" stroke-width="1" stroke-dasharray="3,3"/>
+</svg>
+</div>
+
+<h3>초기 리포트 내용</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(78,205,196,.12);color:#4ecdc4">📊</div><div class="dd"><strong>최근 한 달 매매 분석</strong><p>주 매매 종목, 선물/현물 비율, 평균 보유 시간</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">📈</div><div class="dd"><strong>성과 요약</strong><p>승률, 평균 수익/손실, 최대 수익/손실</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">🔍</div><div class="dd"><strong>패턴 발견</strong><p>"펀딩비 음수일 때 롱 진입하는 경향", "손절이 늦는 편"</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(255,217,61,.12);color:#ffd93d">⚡</div><div class="dd"><strong>입력 비교</strong><p>"본인은 단타라고 했는데 평균 보유 12시간이야"</p></div></div>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 20 요금제 ===== -->
+<section class="sec" id="s20">
+<div class="sl">20</div>
+<h2>요금제 및 비용 구조</h2>
+
+<h3>티어 비교</h3>
+<table class="tb">
+<thead><tr><th></th><th style="color:#4ecdc4">Basic $29/월</th><th style="color:#ffd93d">Pro $69/월</th><th style="color:#ff6b6b">Enterprise $149/월</th></tr></thead>
+<tbody>
+<tr><td><strong>Patrol 주기</strong></td><td>3시간 (일 8회)</td><td>1시간 (일 24회)</td><td>30분 (일 48회)</td></tr>
+<tr><td><strong>시그널 AI</strong></td><td>Sonnet</td><td style="color:#ff6b6b">Opus</td><td style="color:#ff6b6b">Opus + Extended Thinking</td></tr>
+<tr><td><strong>매매 근거 AI</strong></td><td>Sonnet</td><td style="color:#ff6b6b">Opus</td><td style="color:#ff6b6b">Opus</td></tr>
+<tr><td><strong>채팅 AI</strong></td><td>Sonnet</td><td>Sonnet</td><td>Sonnet + 복잡 질문 Opus</td></tr>
+<tr><td><strong>에피소드 AI</strong></td><td>Sonnet</td><td>Sonnet</td><td>Sonnet</td></tr>
+<tr><td><strong>시그널 상한</strong></td><td>일 2회</td><td>일 5회</td><td>무제한</td></tr>
+<tr><td><strong>거래소 연결</strong></td><td>1개</td><td>3개</td><td>무제한</td></tr>
+<tr><td><strong>추가</strong></td><td>—</td><td>—</td><td>우선지원, API, 커스텀 웹훅</td></tr>
+</tbody>
+</table>
+
+<h3>유저당 원가 상세</h3>
+<table class="tb">
+<thead><tr><th>항목</th><th>Basic</th><th>Pro</th><th>Enterprise</th></tr></thead>
+<tbody>
+<tr><td>채팅 (Sonnet)</td><td>$4.54</td><td>$6.80</td><td>$12.85*</td></tr>
+<tr><td>Patrol (Sonnet)</td><td>$4.68</td><td>$14.04</td><td>$28.08</td></tr>
+<tr><td>시그널 T2+3</td><td>$3.24</td><td>$8.10</td><td>$21.00</td></tr>
+<tr><td>매매 근거 Q1</td><td>$0.81</td><td>$2.70</td><td>$4.05</td></tr>
+<tr><td>에피소드</td><td>$2.84</td><td>$4.73</td><td>$7.56</td></tr>
+<tr><td>인프라 분담</td><td>$3.00</td><td>$4.00</td><td>$5.50</td></tr>
+<tr><td style="color:var(--text)"><strong>원가 합계</strong></td><td style="color:var(--text)"><strong>$19.11</strong></td><td style="color:var(--text)"><strong>$40.37</strong></td><td style="color:var(--text)"><strong>$79.04</strong></td></tr>
+<tr><td style="color:var(--accent)"><strong>유저 가격</strong></td><td style="color:var(--accent)"><strong>$29</strong></td><td style="color:var(--accent)"><strong>$69</strong></td><td style="color:var(--accent)"><strong>$149</strong></td></tr>
+<tr><td>마진</td><td>52%</td><td>71%</td><td>88%</td></tr>
+</tbody>
+</table>
+<p style="font-size:.82rem;color:var(--text-dim)">* Enterprise 채팅은 Sonnet 80% + 복잡 질문 Opus 20% 하이브리드</p>
+
+<h3>100명 믹스 시나리오 (Basic 60 / Pro 30 / Enterprise 10)</h3>
+<table class="tb">
+<thead><tr><th></th><th>유저 수</th><th>원가 합</th><th>매출 합</th></tr></thead>
+<tbody>
+<tr><td>Basic</td><td>60</td><td>$1,147</td><td>$1,740</td></tr>
+<tr><td>Pro</td><td>30</td><td>$1,211</td><td>$2,070</td></tr>
+<tr><td>Enterprise</td><td>10</td><td>$790</td><td>$1,490</td></tr>
+<tr><td style="color:var(--text)"><strong>합계</strong></td><td><strong>100</strong></td><td><strong>$3,148</strong></td><td><strong>$5,300</strong></td></tr>
+<tr><td style="color:var(--accent)"><strong>월 이익</strong></td><td></td><td></td><td style="color:var(--accent)"><strong>$2,152</strong></td></tr>
+</tbody>
+</table>
+
+<h3>비용 최적화 레버</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">💰</div><div class="dd"><strong>프롬프트 캐싱 강화</strong><p>시스템 프롬프트+Intelligence 반복 → input 비용 최대 90%↓</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">⏰</div><div class="dd"><strong>비활성 유저 Patrol 조정</strong><p>오프라인 유저는 주기 자동 확대 → 30~50%↓</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">📦</div><div class="dd"><strong>Batch API</strong><p>에피소드 생성 배치 처리 → 50% 할인</p></div></div>
+</div>
+<p>전체 최적화 적용 시 <strong>실 비용 $2,000~2,500/월</strong> (DAU 30~50% 가정).</p>
+
+<h3>LLM 단가 기준 (Anthropic API)</h3>
+<table class="tb">
+<thead><tr><th>모델</th><th>Input / 1M tokens</th><th>Output / 1M tokens</th></tr></thead>
+<tbody>
+<tr><td>Opus 4.5</td><td>$5</td><td>$25</td></tr>
+<tr><td>Sonnet 4.5</td><td>$3</td><td>$15</td></tr>
+<tr><td>Haiku 4.5</td><td>$1</td><td>$5</td></tr>
+<tr><td>Cache Read</td><td colspan="2">$0.50 / 1M tokens (90% 절감)</td></tr>
+<tr><td>Batch API</td><td colspan="2">전 모델 50% 할인</td></tr>
+</tbody>
+</table>
+
+<h3>인프라 비용 (AWS 기준, 월)</h3>
+<table class="tb">
+<thead><tr><th>항목</th><th>스펙</th><th>비용</th></tr></thead>
+<tbody>
+<tr><td>EC2 (API 서버)</td><td>t3.xlarge</td><td>~$120</td></tr>
+<tr><td>EC2 (Playwright)</td><td>t3.large</td><td>~$80</td></tr>
+<tr><td>Pinecone</td><td>Standard (벡터 DB)</td><td>~$70</td></tr>
+<tr><td>Redis (ElastiCache)</td><td>Base 캐싱/Trigger</td><td>~$50</td></tr>
+<tr><td>PostgreSQL (RDS)</td><td>유저/매매/설정</td><td>~$50</td></tr>
+<tr><td>기타</td><td>도메인/SSL/CloudWatch</td><td>~$20</td></tr>
+<tr><td><strong>합계</strong></td><td></td><td><strong>~$390</strong></td></tr>
+</tbody>
+</table>
+</section><div class="sep"></div>
+
+<!-- ===== 21 API 아키텍처 ===== -->
+<section class="sec" id="s21">
+<div class="sl">21</div>
+<h2>API-First 아키텍처</h2>
+<p>모든 기능을 <strong>REST API + WebSocket</strong>으로 설계. 텔레그램 봇은 첫 번째 클라이언트. 추후 Electron 앱, 시각화 앱, 외부 연동이 동일 API를 사용.</p>
+
+<div class="dw">
+<svg width="700" height="340" viewBox="0 0 700 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="250" y="10" width="200" height="40" rx="8" fill="rgba(0,212,170,.12)" stroke="#00d4aa" stroke-width="1.5"/>
+<text x="350" y="35" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="11" font-weight="600">API Gateway (인증+Rate Limit)</text>
+<!-- Clients -->
+<rect x="30" y="80" width="140" height="42" rx="8" fill="rgba(123,97,255,.12)" stroke="#7b61ff" stroke-width="1"/>
+<text x="100" y="105" text-anchor="middle" fill="#7b61ff" font-family="Noto Sans KR" font-size="9" font-weight="600">Telegram Bot</text>
+<rect x="200" y="80" width="140" height="42" rx="8" fill="rgba(255,217,61,.08)" stroke="#ffd93d" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="270" y="105" text-anchor="middle" fill="#ffd93d" font-family="Noto Sans KR" font-size="9">Electron App (추후)</text>
+<rect x="370" y="80" width="140" height="42" rx="8" fill="rgba(78,205,196,.08)" stroke="#4ecdc4" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="440" y="105" text-anchor="middle" fill="#4ecdc4" font-family="Noto Sans KR" font-size="9">시각화 App (추후)</text>
+<rect x="540" y="80" width="140" height="42" rx="8" fill="rgba(255,255,255,.05)" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="610" y="105" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="9">3rd Party (추후)</text>
+<line x1="100" y1="80" x2="300" y2="50" stroke="#666" stroke-width="1"/>
+<line x1="270" y1="80" x2="330" y2="50" stroke="#666" stroke-width="1"/>
+<line x1="440" y1="80" x2="380" y2="50" stroke="#666" stroke-width="1"/>
+<line x1="610" y1="80" x2="420" y2="50" stroke="#666" stroke-width="1"/>
+<!-- Services -->
+<line x1="350" y1="50" x2="350" y2="10" stroke="#00d4aa" stroke-width="1.5"/>
+<line x1="260" y1="50" x2="130" y2="170" stroke="#666" stroke-width="1" marker-end="url(#a)"/>
+<line x1="350" y1="50" x2="350" y2="170" stroke="#666" stroke-width="1" marker-end="url(#a)"/>
+<line x1="440" y1="50" x2="570" y2="170" stroke="#666" stroke-width="1" marker-end="url(#a)"/>
+<rect x="40" y="170" width="180" height="50" rx="8" fill="rgba(123,97,255,.08)" stroke="#7b61ff" stroke-width="1"/>
+<text x="130" y="192" text-anchor="middle" fill="#7b61ff" font-family="JetBrains Mono" font-size="9" font-weight="600">Core API</text>
+<text x="130" y="210" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">유저/채팅/명령어</text>
+<rect x="260" y="170" width="180" height="50" rx="8" fill="rgba(0,212,170,.08)" stroke="#00d4aa" stroke-width="1"/>
+<text x="350" y="192" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="9" font-weight="600">Intelligence API</text>
+<text x="350" y="210" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">에피소드/그래프/패턴</text>
+<rect x="480" y="170" width="180" height="50" rx="8" fill="rgba(78,205,196,.08)" stroke="#4ecdc4" stroke-width="1"/>
+<text x="570" y="192" text-anchor="middle" fill="#4ecdc4" font-family="JetBrains Mono" font-size="9" font-weight="600">Monitoring API</text>
+<text x="570" y="210" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">Base/Trigger/Patrol</text>
+<!-- Future -->
+<rect x="260" y="250" width="180" height="50" rx="8" fill="rgba(255,159,67,.08)" stroke="#ff9f43" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="350" y="272" text-anchor="middle" fill="#ff9f43" font-family="JetBrains Mono" font-size="9" font-weight="600">Behavior API (추후)</text>
+<text x="350" y="290" text-anchor="middle" fill="#8888a0" font-family="Noto Sans KR" font-size="8">행동 로그 수집/분석</text>
+<line x1="350" y1="220" x2="350" y2="250" stroke="#ff9f43" stroke-width="1" stroke-dasharray="3,3"/>
+</svg>
+</div>
+
+<h3>핵심 API 엔드포인트</h3>
+<table class="tb">
+<thead><tr><th>서비스</th><th>엔드포인트</th><th>설명</th></tr></thead>
+<tbody>
+<tr><td rowspan="5" style="color:#7b61ff"><strong>Core API</strong></td><td><code>POST /auth/register</code></td><td>유저 등록 (/start)</td></tr>
+<tr><td><code>POST /auth/exchange</code></td><td>거래소 API 연결</td></tr>
+<tr><td><code>POST /chat/message</code></td><td>채팅 메시지 처리</td></tr>
+<tr><td><code>GET /user/sync</code></td><td>싱크로율 조회</td></tr>
+<tr><td><code>GET|PUT /user/principles</code></td><td>투자 원칙 조회/추가/수정/삭제</td></tr>
+<tr><td rowspan="4" style="color:#00d4aa"><strong>Intelligence</strong></td><td><code>GET /intelligence/episodes</code></td><td>에피소드 목록/검색</td></tr>
+<tr><td><code>GET /intelligence/graph</code></td><td>에피소드 관계 그래프 (시각화용)</td></tr>
+<tr><td><code>GET /intelligence/patterns</code></td><td>학습된 패턴 요약</td></tr>
+<tr><td><code>GET /intelligence/calibration</code></td><td>표현 캘리브레이션 데이터</td></tr>
+<tr><td rowspan="3" style="color:#4ecdc4"><strong>Monitoring</strong></td><td><code>GET /monitoring/base</code></td><td>Base 현황 (Hot/Warm/Cold)</td></tr>
+<tr><td><code>GET /monitoring/triggers</code></td><td>활성 트리거 목록</td></tr>
+<tr><td><code>WebSocket /ws/notifications</code></td><td>실시간 알림 스트림</td></tr>
+<tr><td rowspan="2" style="color:#ff9f43"><strong>Behavior (추후)</strong></td><td><code>POST /behavior/logs</code></td><td>Electron 행동 로그 수집</td></tr>
+<tr><td><code>GET /behavior/analysis</code></td><td>행동 패턴 분석</td></tr>
+</tbody>
+</table>
+</section><div class="sep"></div>
+
+<!-- ===== 22 보안 ===== -->
+<section class="sec" id="s22">
+<div class="sl">22</div>
+<h2>보안 구조</h2>
+
+<h3>거래소 API 키 보안 (최우선)</h3>
+<div class="hb dng">
+<strong>원칙: 읽기전용(Read Only) API만 수집. 출금/주문 권한 절대 불필요.</strong><br>
+TRADEFORK는 매매를 대신 실행하지 않음. 온보딩 시 강하게 안내.
+</div>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(255,107,107,.12);color:#ff6b6b">🔒</div><div class="dd"><strong>AWS KMS AES-256 암호화 저장</strong><p>DB에는 암호화 blob만. 복호화는 런타임 메모리에서만. 로그 노출 절대 금지.</p></div></div>
+</div>
+
+<h3>인증/인가</h3>
+<table class="tb">
+<thead><tr><th>레이어</th><th>방식</th><th>비고</th></tr></thead>
+<tbody>
+<tr><td>유저 인증</td><td>Telegram OAuth (user_id)</td><td>추후 Electron도 동일 토큰</td></tr>
+<tr><td>세션</td><td>JWT (access 15분 / refresh 7일)</td><td>API Gateway에서 검증</td></tr>
+<tr><td>외부 연동</td><td>별도 API Key</td><td>Enterprise 티어만</td></tr>
+<tr><td>Rate Limit</td><td>티어별 차등</td><td>Basic 60/min, Pro 120, Ent 300</td></tr>
+</tbody>
+</table>
+
+<h3>데이터 보안 등급</h3>
+<table class="tb">
+<thead><tr><th>데이터</th><th>등급</th><th>방법</th></tr></thead>
+<tbody>
+<tr><td>거래소 API 키</td><td style="color:#ff6b6b">🔴 최고</td><td>AWS KMS AES-256</td></tr>
+<tr><td>매매 내역</td><td style="color:#ff6b6b">🔴 최고</td><td>RDS encryption at rest</td></tr>
+<tr><td>에피소드/Intelligence</td><td style="color:#ffd93d">🟡 높음</td><td>DB 암호화 + 유저별 격리</td></tr>
+<tr><td>채팅 기록</td><td style="color:#ffd93d">🟡 높음</td><td>DB 암호화 + 유저별 격리</td></tr>
+<tr><td>Tier 1 Base 데이터</td><td style="color:#4ecdc4">🟢 보통</td><td>공개 시장 데이터. 유저 설정만 격리</td></tr>
+</tbody>
+</table>
+
+<h3>네트워크 · LLM · 추후 보안</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(78,205,196,.12);color:#4ecdc4">🌐</div><div class="dd"><strong>네트워크</strong><p>TLS 1.3 전체 (HTTPS+WSS). AWS VPC. Security Group. WAF.</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">🧠</div><div class="dd"><strong>LLM 보안</strong><p>프롬프트 인젝션 방어. PII 자동 마스킹. 로그 30일 보관 후 삭제. Anthropic API 학습 미사용.</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(255,159,67,.12);color:#ff9f43">💻</div><div class="dd"><strong>추후 Electron</strong><p>행동 로그 옵트인 동의. 로컬 데이터 암호화. 코드 서명.</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(255,217,61,.12);color:#ffd93d">📋</div><div class="dd"><strong>컴플라이언스</strong><p>투자자문업 금융위 가이드라인. 매매 기록 보관 규정. "매매 대신 실행 안 함" 명시. 면책 조항.</p></div></div>
+</div>
+</section><div class="sep"></div>
+
+<!-- ===== 23 시나리오 ===== -->
+<section class="sec" id="s23">
+<div class="sl">23</div>
+<h2>시나리오 예시</h2>
+
+<div class="sc">
+<div class="st">A — 온보딩 (/start)</div>
+<div class="m mu">/start</div>
+<div class="m mf">안녕! FORKER야. 너의 투자 분신이 될게. 먼저 거래소를 연결하자.<br>📌 업비트/바이낸스/빗썸 중 사용하는 거래소의 API를 등록해줘. <strong>읽기전용만 필요해!</strong></div>
+<div class="m ms">유저: 바이낸스 + 업비트 API 등록 완료</div>
+<div class="m mf">좋아! 최근 한 달 매매 내역을 분석해볼게... ⏳</div>
+<div class="m mf">📊 <strong>너의 30일 매매 분석 리포트</strong><br>· 선물 85% / 현물 15%<br>· 주 종목: SOL, ETH, DOGE<br>· 승률: 62% (23승 14패)<br>· 평균 수익: +8.3% / 평균 손실: -4.1%<br>· 발견 패턴: 펀딩비 음수 시 롱 진입 경향, 밤 시간 손절 늦음</div>
+<div class="m mf">이제 너의 투자 스타일과 지키는 원칙을 자유롭게 알려줘!</div>
+<div class="m mu">선물 위주로 하고 펀딩비 보고 들어가. 주로 SOL ETH. 손절 -5%, 한 종목 30% 이상 안 넣어.</div>
+<div class="m mf">파악했어!<br><br>🔄 <strong>싱크로율: 52%</strong><br>📚 학습 완성도: 68% · 🎯 판단 일치율: 아직 수집 중<br><br>이제 시장을 같이 볼 준비 됐어. 궁금한 거 물어보거나, 시그널이 오면 피드백해줘!</div>
+</div>
+
+<div class="sc">
+<div class="st">B — 경량 알림 (2-1)</div>
+<div class="m mu">BTC 10만 되면 알려줘</div>
+<div class="m mf">알겠어, 도달하면 바로!</div>
+<div class="m ms">... BTC $100,023 ...</div>
+<div class="m mf">🔔 BTC $100,000 도달! 현재 $100,023 (+2.3%)</div>
+</div>
+
+<div class="sc">
+<div class="st">C-1 — 시그널 트리거 ②구조화 (2-2, 준실시간)</div>
+<div class="m mu">업비트 거래량 상위 코인 3개가 비트코인보다 높으면 브리핑해줘</div>
+<div class="m mf">알겠어! 업비트 거래량 데이터 실시간 감시 시작할게. 조건 되면 바로 알려줄게 🔔</div>
+<div class="m ms">→ LLM 조건 분해 → Base에 upbit_volume_ranking Hot 추가 → 코드 폴링 (~5분)</div>
+<div class="m ms">... 조건 충족 → Tier 2→3 (Pro: Opus 판단) ...</div>
+<div class="m mf">🎯 업비트 거래량 상위 3이 DOGE, SOL, PEPE — 전부 BTC 거래량 넘었어. 너 보통 이런 장에서 거래대금 3배 이상인 종목 잡는데, SOL이 지금 4.2배야.</div>
+<div class="m ms">📸 [SOL/USDT 1h 차트 스크린샷 첨부 — 거래대금 급증 구간 표시]</div>
+</div>
+
+<div class="sc">
+<div class="st">C-2 — LLM 평가 트리거 ③ + 구체화 제안</div>
+<div class="m mu">시장 분위기가 공포로 전환되면 알려줘</div>
+<div class="m mf">이건 내가 직접 주기적으로 체크할게. 매 순찰(~1시간)마다 뉴스/센티먼트 확인해서 판단할게!<br><br>💡 참고로 <strong>'Fear&Greed 25 이하면'</strong> 같이 숫자로 구체화하면 실시간 감시로 전환할 수도 있어!</div>
+<div class="m mu">오 그러면 Fear&Greed 25 이하면으로 바꿔줘</div>
+<div class="m mf">좋아! 실시간 감시로 전환했어. Fear&Greed 25 이하 되면 바로 알려줄게 🔔</div>
+<div class="m ms">→ ③ llm_evaluated → ① 경량 알림으로 전환. Base에서 실시간 매칭.</div>
+</div>
+
+<div class="sc">
+<div class="st">D — 매매 감지 → 근거 → 복기 (Q1)</div>
+<div class="m ms">SOL 롱 진입 감지</div>
+<div class="m mf">🔄 SOL 롱 감지! 펀딩비 -0.15% 보고 들어간 거 맞지?</div>
+<div class="m mu">ㅇㅇ</div>
+<div class="m ms">... 보유 중 ...</div>
+<div class="m mf">📊 SOL +15%. 너 평균 익절 +12%인데 넘었어.</div>
+<div class="m ms">... 손절 -8% ...</div>
+<div class="m mf">같이 복기해볼까? ① 펀딩비 -0.15% 진입 ② BTC 급락 -2.3% ③ -8% ④ 보통 펀딩비+거래대금 복합인데 이번엔 펀딩비만 봤어.</div>
+<div class="m ms">→ 교훈 Intelligence 영구 저장</div>
+</div>
+
+<div class="sc">
+<div class="st">E — 자율 서치 (2-4)</div>
+<div class="m mu">VANA 왜 올라?</div>
+<div class="m ms">→ Base + 코인니스 + CryptoPanic + 웹 검색 (KR+EN)</div>
+<div class="m mf">빗썸 VANA 입출금 정지 + 해외 에어드랍 루머. 너 1/15 비슷한 상황에서 DOGE 숏 +14% 먹었는데, 이번엔 이미 +40%라 추격매수 구간이야.</div>
+<div class="m ms">📸 [VANA/KRW 4h 차트 스크린샷 첨부 — +40% 급등 구간 + RSI 과매수 표시]</div>
+</div>
+
+<div class="sc">
+<div class="st">F — Patrol + Base 온도 변화</div>
+<div class="m mf">ETH 펀딩비 -0.08%. 네 기준(-0.1%)은 아닌데 빠르게 내려가고 있어.</div>
+<div class="m mu">오 고마워. DOGE 롱숏비도 같이 봐줘</div>
+<div class="m ms">→ DOGE 롱숏비 Cold → Hot 즉시 승격</div>
+</div>
+
+<div class="sc">
+<div class="st">G — 영어 유저</div>
+<div class="m mu">Why is SOL pumping?</div>
+<div class="m mf">Whale accumulated 2M SOL on-chain, Upbit showing heavy retail inflow. Based on your pattern, you usually enter after the first pullback, not during the initial pump...</div>
+<div class="m ms">→ Intelligence: English, style calibrated</div>
+</div>
+
+<div class="sc">
+<div class="st">H — Feedback 순환</div>
+<div class="m ms">어제 시그널: "SOL 롱 상황" → 유저 [확인]</div>
+<div class="m ms">오늘: SOL 롱 +12% 익절 감지</div>
+<div class="m ms">→ Q1(+12%) + Q4(시그널 적중) → Intelligence → 유사 상황 확신도 ↑</div>
+</div>
+
+<div class="sc">
+<div class="st">I — 유저 표현 캘리브레이션</div>
+<div class="m mu">비트코인이 좀 빠지는 장인 거 같아</div>
+<div class="m mf">ㅇㅇ BTC -3.2%. 전체 약세. 포지션 괜찮아?</div>
+<div class="m ms">에피소드: "좀 빠진다"=-3% / 검증:맞음 / 스타일:반말,간결</div>
+</div>
+
+<div class="sc">
+<div class="st">J — /sync 명령어</div>
+<div class="m mu">/sync</div>
+<div class="m mf">🔄 <strong>싱크로율: 67%</strong><br><br>📚 학습 완성도: 78%<br>&nbsp;&nbsp;· 거래소: 2/3 · 에피소드: 47개 · 원칙: 5개<br><br>🎯 판단 일치율: 59%<br>&nbsp;&nbsp;· 시그널 동의: 12/18 (67%) · 근거 적중: 8/15 (53%)<br><br>💡 처음보다 많이 올랐어! 피드백 계속 해줘.</div>
+</div>
+
+<div class="sc">
+<div class="st">K — 차트 이미지 입력 + 학습</div>
+<div class="m mu">📸 [SOL/USDT 4h 차트 캡처]<br>이거 하락 쐐기 패턴 아니야? 여기서 돌릴 거 같은데</div>
+<div class="m ms">→ Claude Vision: 이미지 분석 + 유저 의견 대조</div>
+<div class="m mf">맞아, 하락 쐐기 맞는 거 같아. 상단 저항 $178, 하단 지지 $162. 근데 거래대금이 줄고 있어서 돌파까진 시간 좀 걸릴 수 있어. 너 보통 쐐기 돌파 확인 후에 들어가는 편이잖아.</div>
+<div class="m mu">ㅇㅇ 돌파하면 알려줘</div>
+<div class="m ms">→ Intelligence: "유저가 쐐기 패턴 인식, $178 저항 판단" 저장<br>→ Trigger: SOL $178 돌파 시 시그널 등록</div>
+</div>
+</section>
+
+<div class="sep"></div>
+
+<div style="text-align:center;padding:40px 0;color:var(--text-dim);font-size:.85rem;">
+  TRADEFORK 기능명세서 v4.2<br>
+  <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.8rem;">23 Sections · 파이프라인 + 온보딩 + 요금제 + API 아키텍처 + 보안</span>
+</div>
+
+</div>
+</body>
+</html>
