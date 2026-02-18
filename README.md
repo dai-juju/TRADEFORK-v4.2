@@ -2,7 +2,7 @@
 
 # TRADEFORK
 
-### Your Investment Twin — Crypto Intelligence Platform
+### Traders' Intelligence Twin Agent - FORKER 
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Telegram Bot](https://img.shields.io/badge/Telegram-Bot-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://core.telegram.org/bots)
@@ -446,6 +446,6 @@ Railway automatically:
 
 **Built by Junsu Kim**
 
-TRADEFORK — *Not a recommendation engine. Your investment twin.*
+TRADEFORK — *Not a recommendation engine. Your intelligence twin.*
 
 </div>
