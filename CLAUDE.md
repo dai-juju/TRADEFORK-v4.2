@@ -80,13 +80,14 @@ tradefork-bot/
 │   ├── main.py                    # FastAPI + lifespan (startup/shutdown)
 │   ├── config.py                  # 환경변수 + 설정 상수
 │   ├── bot/                       # 텔레그램 봇
-│   │   ├── handlers.py            # /start, /sync, /principles, /help + 메시지
-│   │   ├── keyboards.py           # 인라인 키보드
+│   │   ├── handlers.py            # /start, /sync, /principles, /dailybrief, /help + 메시지
+│   │   ├── keyboards.py           # 인라인 키보드 (온보딩, 피드백, 브리핑시간)
 │   │   └── formatter.py           # 메시지 포매팅
 │   ├── core/                      # 코어 비즈니스 로직
 │   │   ├── auth.py                # 유저 등록, 거래소 연결
 │   │   ├── chat.py                # Q2 채팅 처리 (의도 분류 + 응답 동시)
 │   │   ├── onboarding.py          # 온보딩 (30일 분석 → 초기 리포트)
+│   │   ├── briefing.py            # 데일리 브리핑 (시장+포지션+뉴스+트리거+차트+코멘터리)
 │   │   └── sync_rate.py           # 싱크로율 계산
 │   ├── intelligence/              # FORKER의 뇌
 │   │   ├── episode.py             # 에피소드 CRUD + 시장상황 수집

@@ -102,7 +102,7 @@ table.tb{font-size:.78rem}
 <div class="ctr">
 
 <nav class="toc">
-  <h2>목차 — 23 Sections</h2>
+  <h2>목차 — 24 Sections</h2>
   <div class="toc-g">
     <a href="#s01"><span class="n">01</span>전체 파이프라인 개요</a>
     <a href="#s02"><span class="n">02</span>Q — 유저 데이터 수집</a>
@@ -127,6 +127,7 @@ table.tb{font-size:.78rem}
     <a href="#s21"><span class="n">21</span>API-First 아키텍처</a>
     <a href="#s22"><span class="n">22</span>보안 구조</a>
     <a href="#s23"><span class="n">23</span>시나리오 예시</a>
+    <a href="#s24"><span class="n">24</span>데일리 브리핑 + 3축 확신도</a>
   </div>
 </nav>
 
@@ -535,7 +536,7 @@ table.tb{font-size:.78rem}
 </div>
 <h3>판단 출력</h3>
 <div class="cg" style="grid-template-columns:1fr 1fr">
-<div class="cd t3"><div class="cl">매매 시그널</div><h4>"너처럼 봤을 때"</h4><p>진입/청산/관망 + Reasoning + 반대근거 + 확신도 + 손절 + 관련 차트</p></div>
+<div class="cd t3"><div class="cl">매매 시그널</div><h4>"너처럼 봤을 때"</h4><p>진입/청산/관망 + Reasoning + 반대근거 + 3축 확신도 (스타일 일치·유사 에피소드·시장 컨텍스트) + 손절 + 관련 차트</p></div>
 <div class="cd i"><div class="cl">자율 브리핑</div><h4>알아야 할 이슈</h4><p>유저 패턴상 관심 가질 상황 + 근거 + 관련 차트</p></div>
 </div>
 <div class="hb rul"><strong>톤:</strong> "FORKER 추천"이 아닌 <strong>"너처럼 봤을 때"</strong>. 유저 설정 언어로 전달.</div>
@@ -586,13 +587,14 @@ table.tb{font-size:.78rem}
 <section class="sec" id="s18">
 <div class="sl">18</div>
 <h2>텔레그램 명령어 + 싱크로율</h2>
-<p>Telegram Mini App은 사용하지 않음. 4개 명령어로 운영.</p>
+<p>Telegram Mini App은 사용하지 않음. 5개 명령어로 운영.</p>
 <table class="tb">
 <thead><tr><th>명령어</th><th>기능</th><th>비고</th></tr></thead>
 <tbody>
 <tr><td style="color:#00d4aa;font-family:'JetBrains Mono',monospace">/start</td><td>유저 등록 + 온보딩 시작</td><td>거래소 API 등록 → 투자 스타일 입력 → 초기 리포트</td></tr>
 <tr><td style="color:#00d4aa;font-family:'JetBrains Mono',monospace">/sync</td><td>현재 싱크로율 조회</td><td>학습 완성도 + 판단 일치율 복합 지표</td></tr>
 <tr><td style="color:#00d4aa;font-family:'JetBrains Mono',monospace">/principles</td><td>투자 원칙 조회/수정</td><td>Q3 데이터. 추가/수정/삭제/전체교체 자유. LLM이 의도 자동 분류.</td></tr>
+<tr><td style="color:#00d4aa;font-family:'JetBrains Mono',monospace">/dailybrief</td><td>데일리 브리핑 시각 설정</td><td>KST 0~23시 선택 또는 OFF. 인라인 키보드(7/8/9/OFF) + 직접 숫자 입력 지원.</td></tr>
 <tr><td style="color:#00d4aa;font-family:'JetBrains Mono',monospace">/help</td><td>모든 명령어 + 대화 가이드</td><td>명령어 + 자유 대화 예시 안내</td></tr>
 </tbody>
 </table>
@@ -649,6 +651,7 @@ table.tb{font-size:.78rem}
 /start — 처음 시작 + 온보딩<br>
 /sync — 싱크로율 조회<br>
 /principles — 투자 원칙 조회/수정 (추가/수정/삭제 자유)<br>
+/dailybrief — 데일리 브리핑 시각 설정 (KST 0~23 또는 OFF)<br>
 /help — 이 안내<br><br>
 💡 <strong>명령어 없이 자유롭게 대화해도 돼!</strong><br><br>
 📊 시장 질문<br>
@@ -1027,9 +1030,58 @@ TRADEFORK는 매매를 대신 실행하지 않음. 온보딩 시 강하게 안�
 
 <div class="sep"></div>
 
+<!-- ===== 24 데일리 브리핑 + 3축 확신도 ===== -->
+<section class="sec" id="s24">
+<div class="sl">24</div>
+<h2>데일리 브리핑 + 3축 확신도</h2>
+
+<h3>데일리 브리핑</h3>
+<p>매일 유저 설정 시간(KST)에 <strong>개인화된 시장 브리핑</strong>을 자동 전송. 유저가 아침에 텔레그램만 열면 시장 상황을 한눈에 파악 가능.</p>
+
+<div class="cg">
+<div class="cd i"><div class="cl">시장 개요</div><h4>BTC/ETH + 지표</h4><p>가격, 24h 변동, 거래대금, Fear&amp;Greed, 펀딩비, 김프</p></div>
+<div class="cd q"><div class="cl">포지션</div><h4>보유 현황 + 패턴</h4><p>오픈 포지션 목록 + 평균 익절/손절 통계</p></div>
+<div class="cd t2"><div class="cl">뉴스</div><h4>오버나이트 하이라이트</h4><p>주요 암호화폐 뉴스 상위 5건</p></div>
+<div class="cd t1"><div class="cl">트리거</div><h4>활성 알림 상태</h4><p>설정한 알림 목록 + 가격 근접도 표시</p></div>
+<div class="cd t3"><div class="cl">차트</div><h4>캡처 첨부</h4><p>BTC 4h 차트 + 유저 주력 종목 차트</p></div>
+<div class="cd fb"><div class="cl">코멘터리</div><h4>FORKER 분석</h4><p>Intelligence 기반 개인화 코멘터리 3~5문장 (Sonnet)</p></div>
+</div>
+
+<h3>/dailybrief 명령어</h3>
+<p>브리핑 수신 시각을 설정/변경. 인라인 키보드(7/8/9시 KST + OFF) 또는 0~23 직접 입력.</p>
+<div class="cmd">/dailybrief → 현재 설정 표시 + 시간 선택 키보드</div>
+<p>기본값: 8:00 KST. OFF 시 브리핑 비활성화. 온보딩 완료 시 기능 안내에 포함.</p>
+
+<h3>스케줄링</h3>
+<p>APScheduler 5분 간격 실행. 현재 KST 시각의 0~4분일 때만 동작하여 중복 방지. <code>User.briefing_hour == current_kst_hour</code> 조건으로 유저 필터링.</p>
+
+<h3>3축 확신도 (Confidence Axes)</h3>
+<p>시그널 확신도를 단일 숫자가 아닌 <strong>3개 축</strong>으로 분해하여 유저가 판단 근거를 더 잘 이해할 수 있도록 함.</p>
+
+<table class="tb">
+<thead><tr><th>축</th><th>가중치</th><th>의미</th></tr></thead>
+<tbody>
+<tr><td>스타일 매칭 (style_match)</td><td>30%</td><td>유저의 투자 스타일·원칙과 얼마나 일치하는 상황인가</td></tr>
+<tr><td>유사 과거 (historical_similar)</td><td>30%</td><td>과거 유사 에피소드에서 성과가 어땠는가</td></tr>
+<tr><td>시장 맥락 (market_context)</td><td>40%</td><td>현재 시장 환경이 이 판단에 얼마나 적합한가</td></tr>
+</tbody>
+</table>
+
+<p><strong>표시 형식:</strong></p>
+<div class="cmd" style="font-family:'JetBrains Mono',monospace;font-size:.85rem;white-space:pre">📍 확신도: 72%
+  스타일 매칭  ████████░░  82%
+  유사 과거    ██████░░░░  60%
+  시장 맥락    ████████░░  75%</div>
+
+<p>종합 확신도 = style×0.3 + history×0.3 + market×0.4. 하위호환: LLM이 단일 float 반환 시 기존처럼 처리.</p>
+<div class="hb inf"><strong>DB:</strong> Signal 테이블에 <code>confidence_style</code>, <code>confidence_history</code>, <code>confidence_market</code> 컬럼 추가. 기존 <code>confidence</code>(overall)는 유지.</div>
+</section>
+
+<div class="sep"></div>
+
 <div style="text-align:center;padding:40px 0;color:var(--text-dim);font-size:.85rem;">
   TRADEFORK 기능명세서 v4.2<br>
-  <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.8rem;">23 Sections · 파이프라인 + 온보딩 + 요금제 + API 아키텍처 + 보안</span>
+  <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.8rem;">24 Sections · 파이프라인 + 온보딩 + 요금제 + API 아키텍처 + 보안 + 브리핑 + 확신도</span>
 </div>
 
 </div>

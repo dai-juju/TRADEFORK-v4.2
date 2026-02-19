@@ -145,7 +145,8 @@ graph TB
 | 💬 | **Q2 — Intelligent Chat** | Every message enriched with full Intelligence context. Intent classification happens *inside* the same LLM call (zero extra cost). Autonomous web search when needed. |
 | 📋 | **Q3 — Principles Management** | `/principles` — Add, edit, delete, or replace all your trading rules. FORKER references these in every signal and risk warning. |
 | 📡 | **3-Tier Trigger System** | ① Instant alerts (code-based, 0 cost) ② Structured signals (~5 min) ③ LLM-evaluated conditions (~1 hour). LLM auto-upgrades ③→①. 3 sources: user_request, llm_auto, patrol. |
-| 🎯 | **AI Signal Generation** | Opus-powered judgment with mandatory counter-arguments. Confidence %, stop-loss levels, and "as you would see it" framing. |
+| 🎯 | **AI Signal Generation** | Opus-powered judgment with mandatory counter-arguments. 3-axis confidence (style match, historical similarity, market context), stop-loss levels, and "as you would see it" framing. |
+| 📰 | **Daily Briefing** | Scheduled daily briefing at user-configured KST hour. Market overview (BTC/ETH/funding/F&G/kimchi premium), open positions, top news, active triggers with proximity, chart captures, and Intelligence-powered personalized commentary. `/dailybrief` to configure. |
 | 🔄 | **Q4 — Feedback Loop** | Signal → Trade → Result → Learning. Agrees strengthen patterns, disagrees calibrate. Unfollowed signals teach FORKER your real preferences. |
 | 📊 | **Sync Rate** | Quantifies how well FORKER knows you. Combines trade count, episodes, principles, calibrations, and recency into a single 0-100% score. |
 | 🛡️ | **Security First** | AES-256 encrypted exchange keys, runtime-only decryption with immediate disposal, read-only API enforcement, no trade execution capability. |
@@ -269,13 +270,14 @@ TRADEFORK-v4.2/
 │   ├── main.py                    # FastAPI app + lifespan + scheduler
 │   ├── config.py                  # Environment variables + constants
 │   ├── bot/                       # Telegram bot layer
-│   │   ├── handlers.py            #   /start, /sync, /principles, /help + messages
-│   │   ├── keyboards.py           #   Inline keyboards (onboarding, feedback)
+│   │   ├── handlers.py            #   /start, /sync, /principles, /dailybrief, /help + messages
+│   │   ├── keyboards.py           #   Inline keyboards (onboarding, feedback, briefing time)
 │   │   └── formatter.py           #   Message formatting utilities
 │   ├── core/                      # Core business logic
 │   │   ├── auth.py                #   User registration + exchange connection
 │   │   ├── chat.py                #   Q2 chat engine (intent + response in one call)
 │   │   ├── onboarding.py          #   Full onboarding flow (30-day analysis)
+│   │   ├── briefing.py            #   Daily briefing (market + positions + news + charts + commentary)
 │   │   └── sync_rate.py           #   Sync rate calculation (0-100%)
 │   ├── intelligence/              # FORKER's brain
 │   │   ├── episode.py             #   Episode CRUD + Intelligence context builder
@@ -401,6 +403,7 @@ Health check: `GET http://localhost:8000/health`
 | Temperature Mgmt | 1h | APScheduler | Hot→Warm→Cold transitions |
 | Signal Reset | 00:00 UTC | APScheduler (cron) | Reset daily signal counters |
 | Trigger Cleanup | 1h | APScheduler | Remove 72h stale LLM triggers |
+| Daily Briefing | 5m | APScheduler | Send briefing to users at their configured KST hour |
 
 ---
 
@@ -408,6 +411,8 @@ Health check: `GET http://localhost:8000/health`
 
 | Change | Description |
 |--------|-------------|
+| **3-Axis Confidence** | Signal confidence decomposed into 3 axes: style_match (30%), historical_similar (30%), market_context (40%). Unicode bar graph display in Telegram. Backward-compatible with single float. |
+| **Daily Briefing** | Scheduled daily briefing with market overview, positions, news, active triggers (with proximity hints), chart captures, and Intelligence-based personalized commentary. Configurable via `/dailybrief` (KST 0-23 or OFF). Default: 8:00 KST. |
 | **Typing Indicator** | Shows "💭 생각하는 중..." before LLM response for better UX. Error-resilient — falls back to new message on edit failure. |
 | **Symbol Normalization** | Auto-strips trading pair suffixes (IRUSDT → IR, SOLUSDT → SOL) for accurate LLM recognition. Supports USDT/KRW/BTC/BUSD/USD/PERP. |
 | **3-Source Trigger System** | Triggers now track their origin: `user_request` (user-initiated), `llm_auto` (FORKER proactive), `patrol` (anomaly-detected). Non-user triggers auto-delete after 72 hours. |
@@ -432,6 +437,8 @@ Health check: `GET http://localhost:8000/health`
 - [x] 3-Source Trigger System (user_request / llm_auto / patrol)
 - [x] Patrol Auto-Trigger Generation
 - [x] Symbol Normalization + Typing Indicator UX
+- [x] 3-Axis Signal Confidence (style / history / market)
+- [x] Daily Briefing + /dailybrief Command
 - [ ] Basic / Enterprise Tiers
 - [ ] Trading Intelligence Graph (TIG) — 3D investment intelligence visualization
 - [ ] Electron Desktop App

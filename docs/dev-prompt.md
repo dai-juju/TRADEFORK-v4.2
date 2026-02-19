@@ -68,8 +68,8 @@ tradefork-bot/
 │   │
 │   ├── bot/                             # 텔레그램 봇 레이어
 │   │   ├── __init__.py
-│   │   ├── handlers.py                  # /start, /sync, /principles, /help + 메시지 핸들러
-│   │   ├── keyboards.py                 # 인라인 키보드 (확인/아니야 버튼 등)
+│   │   ├── handlers.py                  # /start, /sync, /principles, /dailybrief, /help + 메시지 핸들러
+│   │   ├── keyboards.py                 # 인라인 키보드 (확인/아니야/브리핑시간 등)
 │   │   └── formatter.py                 # 텔레그램 메시지 포매팅 (마크다운)
 │   │
 │   ├── core/                            # 코어 API 레이어
@@ -77,6 +77,7 @@ tradefork-bot/
 │   │   ├── auth.py                      # 유저 등록, 거래소 API 연결
 │   │   ├── chat.py                      # Q2 채팅 처리 (의도 분류 + 응답 동시)
 │   │   ├── onboarding.py                # 온보딩 플로우 (30일 매매 분석 → 초기 리포트)
+│   │   ├── briefing.py                  # 데일리 브리핑 (시장개요+포지션+뉴스+트리거+차트+코멘터리)
 │   │   └── sync_rate.py                 # 싱크로율 계산
 │   │
 │   ├── intelligence/                    # Intelligence Module — FORKER의 뇌
@@ -154,6 +155,7 @@ class User:
     style_parsed: jsonb (nullable)              # LLM이 파싱한 스타일 구조화 데이터
     daily_signal_count: int (default=0)         # 오늘 발송한 시그널 수
     daily_signal_reset_at: datetime             # 시그널 카운트 리셋 시각
+    briefing_hour: int (nullable, default=8)    # 데일리 브리핑 시각 KST 0~23, None=OFF
     is_active: bool (default=True)
     last_active_at: datetime
     created_at: datetime
@@ -269,7 +271,10 @@ class Signal:
     content: text                               # 시그널 내용
     reasoning: text                             # 판단 근거
     counter_argument: text (nullable)           # 반대 근거
-    confidence: float                           # 확신도 0~1
+    confidence: float                           # 확신도 0~1 (3축 가중평균)
+    confidence_style: float (nullable)          # 유저 스타일/원칙 일치도 0~1
+    confidence_history: float (nullable)        # 유사 에피소드 과거 성과 0~1
+    confidence_market: float (nullable)         # 현재 시장 상황 적합도 0~1
     symbol: str (nullable)
     direction: str (nullable)                   # "long" | "short" | "exit" | "watch"
     stop_loss: str (nullable)                   # 손절 기준
@@ -407,7 +412,7 @@ restartPolicyType = "on_failure"
 
 ### 3-1. 봇 핸들러 (src/bot/handlers.py)
 
-4개 명령어 + 일반 메시지 핸들러 + 콜백 쿼리 핸들러를 구현하라:
+5개 명령어 + 일반 메시지 핸들러 + 콜백 쿼리 핸들러를 구현하라:
 
 #### /start — 온보딩 시작
 ```
@@ -499,6 +504,7 @@ restartPolicyType = "on_failure"
 · 실시간 감시 → '업비트 거래량 상위 3개가 BTC보다 높으면 알려줘'
 · 브리핑 요청 → '거래대금 터지면 분석해줘'
 · 차트 분석 → 차트 캡처📸 보내면 분석
+· 데일리 브리핑 → 매일 아침 시장/포지션/뉴스 자동 전송 (/dailybrief 로 시간 설정)
 · 투자 원칙 → /principles (추가/수정/삭제 자유)
 · 싱크로율 → /sync"
 
@@ -584,6 +590,7 @@ restartPolicyType = "on_failure"
 /start — 처음 시작 + 온보딩
 /sync — 싱크로율 조회 (FORKER가 너를 얼마나 아는지)
 /principles — 투자 원칙 조회/수정 (추가/수정/삭제 자유)
+/dailybrief — 데일리 브리핑 시각 설정 (0~23 KST 또는 OFF)
 /help — 이 안내
 
 💡 명령어 없이 자유롭게 대화해도 돼!
@@ -1216,7 +1223,11 @@ async def judge_signal(user_id: int, collected_data: dict, trigger: UserTrigger)
        - direction: "long" | "short" | "exit" | "watch"
        - reasoning: "너처럼 봤을 때" 판단 이유
        - counter_argument: 반대 근거 (항상 포함!)
-       - confidence: 0~1 확신도
+       - confidence: 3축 확신도 (dict 또는 float)
+         · style_match: 유저 스타일/원칙 일치도 (30%)
+         · historical_similar: 유사 에피소드 과거 성과 (30%)
+         · market_context: 현재 시장 상황 적합도 (40%)
+         · overall = 가중평균
        - stop_loss: 손절 기준 (유저 원칙 반영)
        - chart_needed: 차트 캡처 첨부 여부
     
@@ -1234,6 +1245,9 @@ async def judge_signal(user_id: int, collected_data: dict, trigger: UserTrigger)
     {counter_argument}
     
     📍 확신도: {confidence}%
+      스타일 매칭  ████████░░  82%
+      유사 과거    ██████░░░░  60%
+      시장 맥락    ████████░░  75%
     🛑 손절: {stop_loss}
     
     [📸 차트 이미지 첨부]
@@ -1336,6 +1350,7 @@ startup:
    - Base 온도 관리: 1시간마다
    - 일일 시그널 카운트 리셋: 매일 00:00 UTC
    - 트리거 자동 삭제: 72시간 미반응 llm_auto + patrol 소스 트리거
+   - 데일리 브리핑: 5분 간격, KST 시각 기준 user.briefing_hour 매칭 유저에게 전송
 7. Base 데이터 폴링 시작 (Hot: 10초, Warm: 30분)
 
 shutdown:
@@ -1455,6 +1470,7 @@ Pinecone 대시보드에서:
    start - 시작 + 온보딩
    sync - 싱크로율 조회
    principles - 투자 원칙 조회/수정
+   dailybrief - 데일리 브리핑 시각 설정
    help - 도움말
 ```
 
