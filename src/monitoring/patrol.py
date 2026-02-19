@@ -71,6 +71,13 @@ class PatrolService:
             if anomalies:
                 findings.extend(anomalies)
 
+            # 2-b) 이상 징후 기반 자동 트리거 생성 (source="patrol")
+            auto_triggers = await PatrolService._auto_generate_triggers(
+                session, user, anomalies, bot,
+            )
+            if auto_triggers:
+                actions.extend(auto_triggers)
+
             # 3) ③ llm_evaluated 트리거 평가
             eval_results = await PatrolService._evaluate_llm_triggers(
                 session, user, bot,
@@ -283,6 +290,111 @@ class PatrolService:
                 logger.error(
                     "대기 요청 처리 실패: trigger=%d", trigger.id, exc_info=True,
                 )
+
+        return actions
+
+    # ------------------------------------------------------------------
+    # 2-b) Patrol 자동 트리거 생성 (source="patrol")
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    async def _auto_generate_triggers(
+        session: AsyncSession,
+        user: User,
+        anomalies: list[dict[str, Any]],
+        bot: Bot,
+    ) -> list[dict[str, Any]]:
+        """이상 징후 + 유저 패턴 기반 자동 트리거 생성.
+
+        - 유저 주력 종목에서 이상 징후 발견 시 알림 트리거 자동 생성
+        - 이미 동일 조건 트리거가 있으면 스킵 (중복 방지)
+        """
+        if not anomalies:
+            return []
+
+        from src.intelligence.pattern import analyze_patterns
+
+        actions: list[dict[str, Any]] = []
+
+        # 유저 주력 종목 파악 (top_symbols: [("BTC/USDT", 15), ...])
+        patterns = await analyze_patterns(session, user.id)
+        primary_symbols: set[str] = set()
+        if patterns and patterns.get("top_symbols"):
+            for sym_name, _count in patterns["top_symbols"]:
+                # "BTC/USDT" → "BTC", "ETH/KRW" → "ETH"
+                base = sym_name.split("/")[0] if "/" in sym_name else sym_name
+                primary_symbols.add(base)
+
+        # 유저의 활성 트리거 조회 (중복 방지)
+        existing_result = await session.execute(
+            select(UserTrigger).where(
+                UserTrigger.user_id == user.id,
+                UserTrigger.is_active.is_(True),
+                UserTrigger.source == "patrol",
+            )
+        )
+        existing_descs = {
+            t.description for t in existing_result.scalars().all()
+        }
+
+        for anomaly in anomalies:
+            symbol = anomaly.get("symbol")
+            if not symbol:
+                continue
+
+            # 유저 관심 종목이 아니면 스킵
+            if primary_symbols and symbol not in primary_symbols:
+                continue
+
+            desc = anomaly.get("detail", f"{symbol} 이상 징후")
+            if desc in existing_descs:
+                continue
+
+            # 이상 징후를 유저에게 알림 + 관련 트리거 생성
+            severity = anomaly.get("severity", "medium")
+            a_type = anomaly.get("type", "unknown")
+
+            # 알림 메시지 전송
+            emoji = "🚨" if severity == "high" else "⚡"
+            text = f"{emoji} 순찰 감지: {desc}\n네 관심 종목이라 알려줘."
+
+            session.add(ChatMessage(
+                user_id=user.id,
+                role="assistant",
+                content=text,
+                message_type="text",
+                intent="patrol_deferred",
+            ))
+
+            # 후속 추적용 LLM 평가 트리거 생성
+            ut = UserTrigger(
+                user_id=user.id,
+                trigger_type="llm_evaluated",
+                eval_prompt=f"{desc} — 이 상황이 매매 기회인지 위험인지 평가",
+                data_needed=["news", "sentiment"],
+                description=desc,
+                source="patrol",
+            )
+            session.add(ut)
+
+            try:
+                await bot.send_message(chat_id=user.telegram_id, text=text)
+            except Exception:
+                logger.error("Patrol 알림 전송 실패", exc_info=True)
+
+            actions.append({
+                "type": "auto_trigger_created",
+                "anomaly": a_type,
+                "symbol": symbol,
+                "description": desc,
+            })
+            logger.info(
+                "Patrol 자동 트리거: user=%s, %s",
+                user.telegram_id, desc,
+            )
+
+        if actions:
+            await session.flush()
 
         return actions
 

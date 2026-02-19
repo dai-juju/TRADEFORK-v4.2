@@ -465,9 +465,10 @@ async def _daily_signal_reset_job() -> None:
 
 
 async def _trigger_cleanup_job() -> None:
-    """72시간 무반응 LLM 생성 트리거 자동 삭제.
+    """72시간 무반응 자동 생성 트리거 삭제.
 
-    source='llm_auto'인 트리거 중 72시간 경과 + 미발동 → 비활성화.
+    source='llm_auto' 또는 'patrol'인 트리거 중 72시간 경과 + 미발동 → 비활성화.
+    user_request는 유저가 직접 요청한 것이므로 자동 삭제하지 않음.
     """
     from src.db.models import UserTrigger
     from src.db.session import async_session_factory
@@ -478,7 +479,7 @@ async def _trigger_cleanup_job() -> None:
         async with async_session_factory() as session:
             result = await session.execute(
                 select(UserTrigger).where(
-                    UserTrigger.source == "llm_auto",
+                    UserTrigger.source.in_(["llm_auto", "patrol"]),
                     UserTrigger.is_active.is_(True),
                     UserTrigger.triggered_at.is_(None),
                     UserTrigger.created_at < cutoff,

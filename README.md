@@ -144,7 +144,7 @@ graph TB
 | 🔄 | **Q1 — Trade Auto-Detection** | Connects to Binance/Upbit/Bithumb via read-only API. Detects new trades in real-time, filters dust/deposits, and FORKER infers *your* reasoning using Opus AI. |
 | 💬 | **Q2 — Intelligent Chat** | Every message enriched with full Intelligence context. Intent classification happens *inside* the same LLM call (zero extra cost). Autonomous web search when needed. |
 | 📋 | **Q3 — Principles Management** | `/principles` — Add, edit, delete, or replace all your trading rules. FORKER references these in every signal and risk warning. |
-| 📡 | **3-Tier Trigger System** | ① Instant alerts (code-based, 0 cost) ② Structured signals (~5 min) ③ LLM-evaluated conditions (~1 hour). LLM auto-upgrades ③→① when possible. |
+| 📡 | **3-Tier Trigger System** | ① Instant alerts (code-based, 0 cost) ② Structured signals (~5 min) ③ LLM-evaluated conditions (~1 hour). LLM auto-upgrades ③→①. 3 sources: user_request, llm_auto, patrol. |
 | 🎯 | **AI Signal Generation** | Opus-powered judgment with mandatory counter-arguments. Confidence %, stop-loss levels, and "as you would see it" framing. |
 | 🔄 | **Q4 — Feedback Loop** | Signal → Trade → Result → Learning. Agrees strengthen patterns, disagrees calibrate. Unfollowed signals teach FORKER your real preferences. |
 | 📊 | **Sync Rate** | Quantifies how well FORKER knows you. Combines trade count, episodes, principles, calibrations, and recency into a single 0-100% score. |
@@ -404,6 +404,20 @@ Health check: `GET http://localhost:8000/health`
 
 ---
 
+## Recent Updates (v4.2.1)
+
+| Change | Description |
+|--------|-------------|
+| **Typing Indicator** | Shows "💭 생각하는 중..." before LLM response for better UX. Error-resilient — falls back to new message on edit failure. |
+| **Symbol Normalization** | Auto-strips trading pair suffixes (IRUSDT → IR, SOLUSDT → SOL) for accurate LLM recognition. Supports USDT/KRW/BTC/BUSD/USD/PERP. |
+| **3-Source Trigger System** | Triggers now track their origin: `user_request` (user-initiated), `llm_auto` (FORKER proactive), `patrol` (anomaly-detected). Non-user triggers auto-delete after 72 hours. |
+| **Patrol Auto-Triggers** | Patrol detects anomalies (price spikes, funding extremes, OI surges) and automatically creates `llm_evaluated` triggers for the user's primary symbols. |
+| **Funding Rate Fix** | Trigger matching now uses `rate_pct` (percentage) instead of raw `rate` (decimal), ensuring conditions like "ETH funding < -0.1%" fire correctly. |
+| **Episode Error Resilience** | Pinecone upsert failures no longer crash the chat pipeline. Session state is safely recovered via rollback. |
+| **Proactive LLM Triggers** | FORKER now auto-generates monitoring triggers based on user patterns (e.g., funding alerts for funding-rate traders) with `source: llm_auto`. |
+
+---
+
 ## Roadmap
 
 - [x] Core Pipeline (Q → Intelligence → Tier 1/2/3 → Signal → Feedback)
@@ -415,6 +429,9 @@ Health check: `GET http://localhost:8000/health`
 - [x] Base Temperature Management (Hot / Warm / Cold)
 - [x] Autonomous Patrol (1-hour surveillance)
 - [x] Pro Tier — Complete
+- [x] 3-Source Trigger System (user_request / llm_auto / patrol)
+- [x] Patrol Auto-Trigger Generation
+- [x] Symbol Normalization + Typing Indicator UX
 - [ ] Basic / Enterprise Tiers
 - [ ] Trading Intelligence Graph (TIG) — 3D investment intelligence visualization
 - [ ] Electron Desktop App

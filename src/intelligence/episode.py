@@ -71,8 +71,12 @@ async def create_episode(
     if auto_collect_market and not market_context:
         market_context = await _collect_market_context(session, user)
 
+    # user 속성을 미리 캡처 — flush 후 session 상태 변경 시 lazy load 방지
+    _user_id = user.id
+    _telegram_id = user.telegram_id
+
     episode = Episode(
-        user_id=user.id,
+        user_id=_user_id,
         episode_type=episode_type,
         user_action=user_action,
         embedding_text=embedding_text,
@@ -86,10 +90,17 @@ async def create_episode(
     session.add(episode)
     await session.flush()
 
+    logger.info(
+        "에피소드 생성: user=%s, type=%s, id=%s",
+        _telegram_id,
+        episode_type,
+        episode.id,
+    )
+
     # Pinecone upsert (실패해도 에피소드는 저장)
     try:
         pinecone_id = await vector_store.upsert_episode(
-            telegram_id=user.telegram_id,
+            telegram_id=_telegram_id,
             episode_id=episode.id,
             text=embedding_text,
         )
@@ -97,17 +108,16 @@ async def create_episode(
         await session.flush()
     except Exception:
         logger.warning(
-            "Pinecone upsert 실패 (episode=%s), DB만 저장됨",
+            "Pinecone upsert/flush 실패 (episode=%s), DB만 저장됨",
             episode.id,
             exc_info=True,
         )
+        # StaleDataError 등으로 session이 오염된 경우 rollback 후 계속 진행
+        try:
+            await session.rollback()
+        except Exception:
+            pass
 
-    logger.info(
-        "에피소드 생성: user=%s, type=%s, id=%s",
-        user.telegram_id,
-        episode_type,
-        episode.id,
-    )
     return episode
 
 

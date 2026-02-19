@@ -238,13 +238,14 @@ def _check_condition(
     if cond_type == "funding_above":
         fund_key = f"funding/{symbol}"
         fund_data = current_data.get(fund_key, {})
-        rate = _extract_number(fund_data, "rate")
+        # rate_pct(퍼센트)로 비교 — LLM이 -0.1 = -0.1%로 설정
+        rate = _extract_number(fund_data, "rate_pct")
         return rate is not None and rate >= value
 
     if cond_type == "funding_below":
         fund_key = f"funding/{symbol}"
         fund_data = current_data.get(fund_key, {})
-        rate = _extract_number(fund_data, "rate")
+        rate = _extract_number(fund_data, "rate_pct")
         return rate is not None and rate <= value
 
     if cond_type == "volume_spike":

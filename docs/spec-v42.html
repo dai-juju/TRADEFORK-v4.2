@@ -282,6 +282,11 @@ table.tb{font-size:.78rem}
 </svg>
 </div>
 <div class="hb rul"><strong>핵심:</strong> 모든 분류는 채팅 응답 중 동시 처리. 추가 LLM 호출 없음, 비용 0.</div>
+<h3>채팅 UX 개선</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">💭</div><div class="dd"><strong>타이핑 인디케이터</strong><p>LLM 호출 전 "💭 생각하는 중..." 메시지 전송. 응답 완료 시 edit_text로 교체. 에러 시 "잠깐 문제가 생겼어" 안전 폴백.</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">🔄</div><div class="dd"><strong>심볼 정규화</strong><p>IRUSDT→IR, BTCUSDT→BTC 등 거래쌍 접미사(USDT/KRW/BTC/BUSD/USD/PERP) 자동 제거. LLM에는 정규화된 텍스트, DB에는 원본 저장.</p></div></div>
+</div>
 
 <h3>이미지 입력 (차트 캡처 분석)</h3>
 <p>유저가 <strong>차트 캡처 + 자신의 의견</strong>을 함께 보내면, LLM(Claude Vision)이 이미지를 분석하고 유저 의견과 실제 차트를 대조.</p>
@@ -475,7 +480,13 @@ table.tb{font-size:.78rem}
 예: "시장 분위기가 공포로 전환되면" → "이건 내가 주기적으로 체크할게. 만약 <strong>'Fear&Greed 25 이하면'</strong> 같이 구체화하면 실시간 감시로 전환할 수도 있어!"
 </div>
 
-<p><strong>생성 주체:</strong> 유저 직접 요청 (채팅 LLM이 ①②③ 자동 분류) 또는 LLM이 Intelligence 기반 자동 생성 (72시간 무반응 시 자동 삭제).</p>
+<h3>트리거 생성 주체 (3-Source 시스템)</h3>
+<div class="dl">
+<div class="di"><div class="dm" style="background:rgba(123,97,255,.12);color:#7b61ff">1</div><div class="dd"><strong>user_request</strong> — 유저 직접 요청<p>채팅 LLM이 ①②③ 자동 분류. FORKER_META trigger_action으로 생성.</p></div></div>
+<div class="di"><div class="dm" style="background:rgba(0,212,170,.12);color:#00d4aa">2</div><div class="dd"><strong>llm_auto</strong> — FORKER 능동 생성<p>Intelligence 기반으로 유저 패턴에 맞는 트리거 자동 생성. 예: 펀딩비 매매 패턴 유저 → 펀딩비 알림 자동 등록. <strong>72시간 미발동 시 자동 삭제.</strong></p></div></div>
+<div class="di"><div class="dm" style="background:rgba(78,205,196,.12);color:#4ecdc4">3</div><div class="dd"><strong>patrol</strong> — Patrol 이상 징후 감지<p>순찰 중 발견한 이상 징후가 유저 주력 종목과 매칭되면 llm_evaluated 트리거 자동 생성. <strong>72시간 미발동 시 자동 삭제.</strong></p></div></div>
+</div>
+<div class="hb inf"><strong>펀딩비 트리거 주의:</strong> funding_below/funding_above 조건은 퍼센트 값(rate_pct)으로 비교. 예: "ETH 펀딩비 -0.1% 이하" → value: -0.1 (소수 -0.001 아님)</div>
 </section><div class="sep"></div>
 
 <!-- ===== 13 ===== -->
@@ -493,6 +504,8 @@ table.tb{font-size:.78rem}
 </div>
 <h3>추가 역할</h3>
 <p>Base 온도 관리 (Hot/Warm/Cold 전환), User Trigger 자동 생성/갱신/삭제</p>
+<h3>Patrol 자동 트리거 생성</h3>
+<div class="hb inf">순찰 중 발견한 이상 징후(가격 급등/급락, 펀딩비 극단값, OI 급변)가 <strong>유저 주력 종목</strong>(analyze_patterns top_symbols)과 매칭되면 llm_evaluated 트리거를 자동 생성 (source="patrol"). 유저에게 "순찰 중 이상 감지" 알림 발송. 72시간 미발동 시 자동 삭제.</div>
 </section><div class="sep"></div>
 
 <!-- ===== 14 ===== -->

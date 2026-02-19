@@ -37,6 +37,19 @@ from src.llm.prompts import (
 
 logger = logging.getLogger(__name__)
 
+# 거래쌍 접미사 정규식 — IRUSDT → IR, SOLUSDT → SOL 등
+_PAIR_SUFFIX_RE = re.compile(r"\b([A-Z]{2,10})(USDT|KRW|BTC|BUSD|USD|PERP)\b")
+
+
+def _normalize_trading_pairs(text: str) -> str:
+    """거래쌍 표기에서 접미사(USDT/KRW 등)를 제거하여 심볼만 남김.
+
+    예: 'IRUSDT 어때?' → 'IR 어때?'
+        'BTCUSDT 가격' → 'BTC 가격'
+    """
+    return _PAIR_SUFFIX_RE.sub(r"\1", text)
+
+
 # FORKER_META 파싱 정규식 — LLM 출력 포맷 변형에 대응하도록 유연하게
 _META_PATTERN = re.compile(
     r"<!--\s*FORKER_META\s*(.*?)\s*FORKER_META\s*-->",
@@ -128,6 +141,10 @@ async def _post_process(
     trigger = meta.get("trigger_action")
     if trigger and isinstance(trigger, dict):
         trigger_type = trigger.get("type", "alert")
+        trigger_source = trigger.get("source", "user_request")
+        # source 유효성 검증
+        if trigger_source not in ("user_request", "llm_auto", "patrol"):
+            trigger_source = "user_request"
         ut = UserTrigger(
             user_id=user.id,
             trigger_type=trigger_type,
@@ -137,7 +154,7 @@ async def _post_process(
             eval_prompt=trigger.get("eval_prompt"),
             data_needed=trigger.get("data_needed"),
             description=trigger.get("description", message_text[:200]),
-            source="user_request",
+            source=trigger_source,
         )
         session.add(ut)
         logger.info(
@@ -231,8 +248,13 @@ async def process_message(
         ChatResult (응답 텍스트 + 메타데이터)
     """
 
+    # 0) 심볼 정규화 — IRUSDT → IR, BTCUSDT → BTC 등
+    normalized_text = _normalize_trading_pairs(message_text)
+    if normalized_text != message_text:
+        logger.info("심볼 정규화: '%s' → '%s'", message_text, normalized_text)
+
     # 1) Intelligence 컨텍스트 구축 (중앙 집중 — episode.py)
-    ctx = await build_intelligence_context(session, user, message_text)
+    ctx = await build_intelligence_context(session, user, normalized_text)
 
     # 2) 시스템 프롬프트 조립 — 2블록 분리로 캐싱 효율 극대화
     #    Block 1: 정적 (FORKER 정체성 + 응답 규칙) → 캐싱 O (모든 유저/메시지 동일)
@@ -259,11 +281,11 @@ async def process_message(
         content_blocks = LLMClient.build_image_content(
             image_data=image_data,
             media_type=image_media_type,
-            prompt=message_text or "이 차트를 분석해줘.",
+            prompt=normalized_text or "이 차트를 분석해줘.",
         )
         messages.append({"role": "user", "content": content_blocks})
     else:
-        messages.append({"role": "user", "content": message_text})
+        messages.append({"role": "user", "content": normalized_text})
 
     # 4) LLM 호출 (Sonnet)
     try:
@@ -297,14 +319,14 @@ async def process_message(
             from src.data.search import autonomous_search
 
             search_results = await autonomous_search(
-                query=message_text,
+                query=normalized_text,
                 user_language=user.language or "ko",
             )
 
             if search_results and search_results != "검색 결과 없음":
                 # 검색 결과로 2차 LLM 호출
                 search_prompt = SEARCH_RESPONSE_PROMPT.format(
-                    question=message_text,
+                    question=normalized_text,
                     search_results=search_results,
                     intelligence_context=ctx["intelligence_context"],
                 )
@@ -314,7 +336,7 @@ async def process_message(
                         "text": search_prompt,
                         "cache_control": CACHE_CONTROL_EPHEMERAL,
                     }],
-                    messages=[{"role": "user", "content": message_text}],
+                    messages=[{"role": "user", "content": normalized_text}],
                     max_tokens=4096,
                 )
                 search_text, search_meta = _parse_response(search_resp.text)

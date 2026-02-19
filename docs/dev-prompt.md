@@ -724,9 +724,14 @@ FORKER_META-->
 
 ### 4-2. 채팅 처리 로직 (src/core/chat.py)
 
+**구현 완료된 추가 기능:**
+- **심볼 정규화**: `_normalize_trading_pairs()` — IRUSDT→IR, BTCUSDT→BTC 등 거래쌍 접미사(USDT/KRW/BTC/BUSD/USD/PERP) 자동 제거. LLM에는 정규화된 텍스트 전달, DB에는 원본 저장.
+- **타이핑 인디케이터**: `handlers.py`에서 `ChatAction.TYPING` + "💭 생각하는 중..." 메시지를 LLM 호출 전 전송, 응답 완료 시 `edit_text`로 교체. `process_message()` try/except 래핑으로 에러 시에도 "잠깐 문제가 생겼어" 표시.
+
 ```python
 async def process_message(user_id: int, message_text: str, image_base64: str = None):
     """
+    0. 심볼 정규화 — IRUSDT → IR 등 (LLM 전달용)
     1. Intelligence 컨텍스트 구축
        - 최근 에피소드 5개 (Pinecone 유사 검색으로 관련 에피소드도 포함)
        - 투자 원칙 전체
@@ -1070,18 +1075,25 @@ class TriggerManager:
     - ③이 되는 경우, "실시간 가능한 요청은 실시간 설정 가능" + 구체화 제안
     - 유저에게 절대 "안 돼"가 아닌 "이렇게 하면 실시간도 돼" 방향으로 안내
     
-    생성 주체:
-    - 유저 직접 요청 (채팅 LLM이 분류 + ①②③ 자동 결정)
-    - LLM이 Intelligence 기반 자동 생성 (72시간 무반응 시 자동 삭제)
-    - Patrol이 생성/갱신/삭제
+    생성 주체 (3-Source 시스템, 구현 완료):
+    - user_request: 유저 직접 요청 (채팅 LLM이 분류 + ①②③ 자동 결정)
+    - llm_auto: LLM이 Intelligence 기반 자동 생성 (72시간 무반응 시 자동 삭제)
+      → FORKER_META trigger_action에 "source": "llm_auto" 포함
+      → 프롬프트에 Rule 6 (능동적 트리거 자동 생성) 지침 추가됨
+    - patrol: Patrol이 이상 징후 감지 시 자동 생성 (72시간 무반응 시 자동 삭제)
+      → _auto_generate_triggers()에서 유저 주력 종목 매칭
+
+    펀딩비 트리거 주의:
+    - funding_below/funding_above 비교 시 rate_pct (퍼센트 값) 사용
+    - 예: -0.1 = -0.1% (rate 소수 값 -0.001이 아님)
     """
-    
+
     async def evaluate_all(self, user_id: int, current_data: dict):
         """모든 활성 트리거 조건 체크. Base 데이터 업데이트마다 호출."""
-    
+
     async def fire_alert(self, user_id: int, trigger: UserTrigger):
         """경량 알림 즉시 전송"""
-    
+
     async def fire_signal(self, user_id: int, trigger: UserTrigger):
         """시그널 트리거 → Tier 2 → Tier 3 파이프라인 시작"""
 ```
@@ -1126,23 +1138,33 @@ class PatrolService:
     - Base 온도 관리: 7일/30일 기준 Hot→Warm→Cold 전환
     - User Trigger 자동 생성/갱신/삭제
     - 비활성 유저(24시간+ 미접속) 감지 → Patrol 주기 자동 확대
-    
+
+    Patrol 자동 트리거 생성 (구현 완료):
+    - _auto_generate_triggers(): 이상 징후 감지 후 유저 주력 종목과 매칭
+    - analyze_patterns()에서 top_symbols 추출
+    - 매칭되는 이상 징후 → llm_evaluated 트리거 자동 생성 (source="patrol")
+    - 유저에게 텔레그램 알림 발송 ("순찰 중 이상 감지, 트리거 등록")
+    - 72시간 미발동 시 자동 삭제 (_trigger_cleanup_job)
+
     LLM 사용: Sonnet 4.5 (순찰 분석용)
-    
+
     순찰 결과:
     - 유저에게 알릴 이슈 발견 시 → 시그널 트리거 발동 또는 자율 브리핑
     - PatrolLog DB에 기록
     """
-    
+
     async def run_patrol(self, user_id: int):
         """1시간 주기 순찰 실행"""
-    
+
     async def check_base_anomalies(self, user_id: int) -> list:
         """Base 데이터 이상 징후 감지"""
-    
+
+    async def _auto_generate_triggers(self, session, user, anomalies, bot):
+        """이상 징후 + 유저 주력 종목 매칭 → 자동 트리거 생성 (source='patrol')"""
+
     async def browse_sources(self, user_id: int) -> list:
         """Tavily로 브라우징 소스 체크"""
-    
+
     async def process_deferred_requests(self, user_id: int) -> list:
         """대기 중인 요청 처리"""
 ```
@@ -1313,7 +1335,7 @@ startup:
    - Patrol 순찰: 유저별 1시간마다
    - Base 온도 관리: 1시간마다
    - 일일 시그널 카운트 리셋: 매일 00:00 UTC
-   - 트리거 자동 삭제: 72시간 미반응 LLM 생성 트리거
+   - 트리거 자동 삭제: 72시간 미반응 llm_auto + patrol 소스 트리거
 7. Base 데이터 폴링 시작 (Hot: 10초, Warm: 30분)
 
 shutdown:

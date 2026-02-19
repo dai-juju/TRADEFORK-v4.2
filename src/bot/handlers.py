@@ -7,6 +7,7 @@ import time
 
 from sqlalchemy import select
 from telegram import Update
+from telegram.constants import ChatAction
 from telegram.ext import ContextTypes
 
 from src.bot.keyboards import add_more_exchange, exchange_selection
@@ -323,10 +324,27 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 await session.commit()
                 return
 
-            # Q2 채팅 엔진
-            result = await process_message(session, user, text)
-            await update.message.reply_text(result.response_text)
-            await session.commit()
+            # Q2 채팅 엔진 — "생각 중" 메시지 먼저 전송
+            await update.message.chat.send_action(ChatAction.TYPING)
+            thinking_msg = await update.message.reply_text("💭 생각하는 중...")
+            try:
+                result = await process_message(session, user, text)
+                reply_text = result.response_text
+            except Exception:
+                logger.error("채팅 처리 실패", exc_info=True)
+                reply_text = "잠깐 문제가 생겼어. 다시 말해줘!"
+            try:
+                await thinking_msg.edit_text(reply_text)
+            except Exception:
+                try:
+                    await thinking_msg.delete()
+                except Exception:
+                    pass
+                await update.message.reply_text(reply_text)
+            try:
+                await session.commit()
+            except Exception:
+                pass
             return
 
         # 기타 (온보딩 중간 단계 — step 0, 2 등)
@@ -373,7 +391,9 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
         await session.flush()
 
-        # Q2 채팅 엔진 (Vision 모드)
+        # Q2 채팅 엔진 (Vision 모드) — "분석 중" 메시지 먼저 전송
+        await update.message.chat.send_action(ChatAction.TYPING)
+        thinking_msg = await update.message.reply_text("🔍 차트 분석 중...")
         result = await process_message(
             session,
             user,
@@ -381,7 +401,14 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             image_data=bytes(image_bytes),
             image_media_type="image/jpeg",
         )
-        await update.message.reply_text(result.response_text)
+        try:
+            await thinking_msg.edit_text(result.response_text)
+        except Exception:
+            try:
+                await thinking_msg.delete()
+            except Exception:
+                pass
+            await update.message.reply_text(result.response_text)
         await session.commit()
 
 
