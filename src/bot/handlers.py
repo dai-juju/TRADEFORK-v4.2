@@ -30,13 +30,55 @@ PRINCIPLES_TIMEOUT = 60  # seconds
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """/start — 온보딩 시작."""
+    """/start — 온보딩 시작. /start demo → 데모 모드."""
     if not update.effective_user or not update.message:
         return
 
     tg_id = update.effective_user.id
     username = update.effective_user.username
+    args = context.args or []
 
+    # --- /start demo ---
+    if args and args[0].lower() == "demo":
+        from src.core.demo_seed import seed_demo_data
+        from src.core.sync_rate import calculate_sync_rate, format_sync_rate
+
+        async with async_session_factory() as session:
+            user, _ = await get_or_create_user(session, tg_id, username)
+            stats = await seed_demo_data(session, user)
+
+            sync_data = await calculate_sync_rate(session, user)
+            sync_text = format_sync_rate(sync_data)
+
+            msg = (
+                "🔥 데모 모드! FORKER가 이미 너를 알고 있어.\n\n"
+                f"📊 시드 데이터: 매매 {stats['trades']}건, "
+                f"에피소드 {stats['episodes']}개, "
+                f"시그널 {stats['signals']}개, "
+                f"원칙 {stats['principles']}개\n\n"
+                f"{sync_text}\n\n"
+                "아무 질문이나 해봐! 예시:\n"
+                "  · 'SOL 어때?'\n"
+                "  · '어제 DOGE 손절 복기해줘'\n"
+                "  · 'BTC 10만 되면 알려줘'\n"
+                "  · /principles\n"
+                "  · /dailybrief\n\n"
+                "⚠️ TRADEFORK는 매매를 대행하지 않습니다."
+            )
+            session.add(ChatMessage(
+                user_id=user.id,
+                role="assistant",
+                content=msg,
+                message_type="text",
+                intent="general",
+                metadata_={"type": "demo_seed"},
+            ))
+            await session.commit()
+
+        await update.message.reply_text(msg)
+        return
+
+    # --- /start new 또는 일반 /start ---
     async with async_session_factory() as session:
         user, is_new = await get_or_create_user(session, tg_id, username)
 
