@@ -13,37 +13,49 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# TradingView 위젯 HTML 템플릿
+# TradingView 위젯 HTML 템플릿 — 차트가 화면을 꽉 채우도록 최적화
 _TV_WIDGET_HTML = """\
 <!DOCTYPE html>
 <html><head><style>
-  body {{ margin: 0; padding: 0; background: #1e1e1e; }}
-  #tv_chart {{ width: 100%; height: 100vh; }}
+  * {{ margin: 0; padding: 0; }}
+  html, body {{ width: 100%; height: 100%; overflow: hidden; background: #131722; }}
+  .tradingview-widget-container,
+  .tradingview-widget-container div,
+  #tradingview_widget {{ width: 100% !important; height: 100% !important; }}
+  iframe {{ width: 100% !important; height: 100% !important; border: none !important; }}
 </style></head>
 <body>
-<div class="tradingview-widget-container" id="tv_chart">
+<div class="tradingview-widget-container">
   <div id="tradingview_widget"></div>
   <script type="text/javascript"
     src="https://s3.tradingview.com/tv.js"></script>
   <script type="text/javascript">
     new TradingView.widget({{
       "autosize": true,
+      "width": "100%",
+      "height": "100%",
       "symbol": "{exchange}:{symbol_pair}",
       "interval": "{interval}",
       "timezone": "Asia/Seoul",
       "theme": "dark",
       "style": "1",
       "locale": "kr",
-      "toolbar_bg": "#1e1e1e",
+      "toolbar_bg": "#131722",
       "enable_publishing": false,
-      "hide_top_toolbar": false,
+      "hide_top_toolbar": true,
       "hide_legend": false,
+      "hide_side_toolbar": true,
+      "allow_symbol_change": false,
       "save_image": false,
       "container_id": "tradingview_widget",
       "studies": [
         "RSI@tv-basicstudies",
         "BB@tv-basicstudies"
-      ]
+      ],
+      "overrides": {{
+        "paneProperties.background": "#131722",
+        "paneProperties.backgroundType": "solid"
+      }}
     }});
   </script>
 </div>
@@ -68,8 +80,8 @@ async def capture_chart(
     symbol: str,
     timeframe: str = "4h",
     exchange: str = "BINANCE",
-    width: int = 1200,
-    height: int = 800,
+    width: int = 1280,
+    height: int = 720,
 ) -> bytes:
     """TradingView 차트 스크린샷 캡처.
 
@@ -77,8 +89,8 @@ async def capture_chart(
         symbol: 종목 심볼 (예: "BTC", "ETH", "SOL")
         timeframe: 타임프레임 ("1h", "4h", "1D")
         exchange: 거래소 ("BINANCE", "UPBIT")
-        width: 캡처 너비
-        height: 캡처 높이
+        width: 캡처 너비 (기본 1280)
+        height: 캡처 높이 (기본 720)
 
     Returns:
         PNG 바이트
@@ -116,15 +128,20 @@ async def capture_chart(
             browser = await pw.chromium.launch(headless=True)
             page = await browser.new_page(
                 viewport={"width": width, "height": height},
+                device_scale_factor=2,
             )
 
             # 로컬 HTML 로드
             await page.goto(f"file:///{html_path.as_posix()}")
 
-            # TradingView 위젯 로딩 대기
-            await asyncio.sleep(8)
+            # TradingView iframe 로딩 대기
+            try:
+                await page.wait_for_selector("iframe", timeout=10000)
+                await asyncio.sleep(6)
+            except Exception:
+                await asyncio.sleep(10)
 
-            # 스크린샷 캡처
+            # 스크린샷 캡처 — viewport 전체
             png_bytes = await page.screenshot(
                 type="png",
                 full_page=False,
