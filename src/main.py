@@ -805,11 +805,13 @@ async def health() -> dict:
     except Exception:
         pass
 
+    routes = [r.path for r in app.routes if hasattr(r, "path")]
     return {
         "status": "ok",
         "service": "tradefork",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "users": active_users,
         "scheduler": "running" if _scheduler and _scheduler.running else "stopped",
         "bot": "running" if _tg_app else "stopped",
+        "routes": routes,
     }
