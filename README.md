@@ -447,6 +447,8 @@ Health check: `GET http://localhost:8000/health`
 - [ ] Trading Intelligence Graph (TIG) — 3D investment intelligence visualization
 - [ ] Electron Desktop App — capture user behavior logs to deepen learning
 - [ ] Mobile App (React Native)
+- [ ] Trading Intelligence Marketplace — buy, sell, and share proven trading strategies
+- [ ] Trading Intelligence Community — connect with traders, compare styles, and learn from each other
 - [ ] 100 Beta Users → Product-Market Fit validation
 
 ---
