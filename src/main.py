@@ -567,6 +567,225 @@ app = FastAPI(
 )
 
 
+# ==================================================================
+# Demo 엔드포인트 — 데모 영상 촬영용 수동 트리거
+# ==================================================================
+
+
+@app.post("/demo/signal")
+async def demo_signal(telegram_id: int, symbol: str = "SOL") -> dict:
+    """데모 시그널 전송 — 하드코딩된 3축 확신도 시그널."""
+    if not _tg_app:
+        return {"status": "error", "detail": "bot not running"}
+
+    from src.bot.keyboards import signal_feedback
+    from src.db.models import ChatMessage, Signal, User
+    from src.db.session import async_session_factory
+    from src.monitoring.judge import _format_signal_message
+
+    async with async_session_factory() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            return {"status": "error", "detail": "user not found"}
+
+        parsed = {
+            "signal_type": "trade_signal",
+            "direction": "long",
+            "reasoning": (
+                f"{symbol}/USDT 4시간봉 기준으로 봤을 때, 하락 채널 하단 지지선에서 "
+                "강한 반등 캔들이 나왔어. 거래량도 전일 대비 240% 급증했고, "
+                "이전에 비슷한 패턴에서 롱 진입했을 때 수익률이 좋았던 걸 기억해.\n\n"
+                "RSI(14) 38에서 반등 중이고, MACD 히스토그램이 감소세 둔화. "
+                "바이낸스 펀딩비도 -0.01%로 숏 과열 상태라 반등 여건이 좋아.\n\n"
+                "너의 평소 패턴대로라면 여기서 1차 진입 후, "
+                "지지선 재확인 시 2차 추가 매수하는 전략이 맞을 거야."
+            ),
+            "counter_argument": (
+                "글로벌 매크로 불확실성(FOMC 의사록)이 남아있고, "
+                "BTC 도미넌스 상승 시 알트 약세 전환 가능성. "
+                "직전 지지선 이탈 시 추가 하락 -8% 가능."
+            ),
+            "confidence": 0.72,
+            "confidence_style": 0.82,
+            "confidence_history": 0.60,
+            "confidence_market": 0.75,
+            "stop_loss": f"{symbol} $142.50 (-4.2%)",
+        }
+
+        signal = Signal(
+            user_id=user.id,
+            signal_type=parsed["signal_type"],
+            content=parsed["reasoning"],
+            reasoning=parsed["reasoning"],
+            counter_argument=parsed["counter_argument"],
+            confidence=parsed["confidence"],
+            confidence_style=parsed["confidence_style"],
+            confidence_history=parsed["confidence_history"],
+            confidence_market=parsed["confidence_market"],
+            symbol=symbol,
+            direction=parsed["direction"],
+            stop_loss=parsed["stop_loss"],
+        )
+        session.add(signal)
+        await session.flush()
+
+        text = _format_signal_message(parsed, symbol)
+
+        session.add(ChatMessage(
+            user_id=user.id,
+            role="assistant",
+            content=text,
+            message_type="text",
+            intent="signal_trigger",
+            metadata_={"signal_id": signal.id, "demo": True},
+        ))
+        await session.commit()
+
+        await _tg_app.bot.send_message(
+            chat_id=telegram_id,
+            text=text,
+            reply_markup=signal_feedback(),
+        )
+
+    return {"status": "ok", "signal_id": signal.id, "symbol": symbol}
+
+
+@app.post("/demo/briefing")
+async def demo_briefing(telegram_id: int) -> dict:
+    """데모 자율 브리핑 — Patrol이 발견한 인사이트 스타일."""
+    if not _tg_app:
+        return {"status": "error", "detail": "bot not running"}
+
+    from src.db.models import ChatMessage, User
+    from src.db.session import async_session_factory
+
+    async with async_session_factory() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            return {"status": "error", "detail": "user not found"}
+
+        text = (
+            "🔍 FORKER 자율 순찰 브리핑\n"
+            "\n"
+            "순찰 돌다가 눈에 띄는 거 발견했어.\n"
+            "\n"
+            "📊 ETH/BTC 비율이 0.052로 3개월 저점이야. "
+            "지난번에도 이 레벨에서 ETH가 반등했었는데, "
+            "그때 너 ETH 롱 진입해서 +8.3% 먹었잖아.\n"
+            "\n"
+            "🔗 온체인 데이터도 흥미로워:\n"
+            "  · 고래 지갑 3개가 지난 4시간 동안 ETH 12,400개 매집\n"
+            "  · 거래소 ETH 잔고 30일 최저 (매도 압력 감소)\n"
+            "  · 스테이킹 TVL +2.3% (7d)\n"
+            "\n"
+            "⚡ 네가 설정한 'ETH 변동성 확대' 트리거도 근접 중이야.\n"
+            "Bollinger Band 수축이 꽤 심해서 조만간 큰 움직임이 나올 수 있어.\n"
+            "\n"
+            "지금 당장 뭔가 할 필요는 없지만, ETH 쪽 눈여겨봐.\n"
+            "궁금한 거 있으면 물어봐!\n"
+            "\n"
+            "⚠️ TRADEFORK는 매매를 대행하지 않습니다. 최종 판단은 본인의 몫입니다."
+        )
+
+        session.add(ChatMessage(
+            user_id=user.id,
+            role="assistant",
+            content=text,
+            message_type="text",
+            intent="general",
+            metadata_={"type": "patrol_briefing", "demo": True},
+        ))
+        await session.commit()
+
+        await _tg_app.bot.send_message(chat_id=telegram_id, text=text)
+
+    return {"status": "ok"}
+
+
+@app.post("/demo/daily")
+async def demo_daily(telegram_id: int) -> dict:
+    """데모 데일리 브리핑 — 실제 generate_and_send_briefing 시도 후 fallback."""
+    if not _tg_app:
+        return {"status": "error", "detail": "bot not running"}
+
+    from src.db.models import ChatMessage, User
+    from src.db.session import async_session_factory
+
+    async with async_session_factory() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            return {"status": "error", "detail": "user not found"}
+
+        # 실제 브리핑 생성 시도
+        try:
+            from src.core.briefing import generate_and_send_briefing
+
+            await generate_and_send_briefing(session, user, _tg_app.bot)
+            await session.commit()
+            return {"status": "ok", "source": "live"}
+        except Exception:
+            logger.warning("데모 데일리: 실제 브리핑 실패, fallback 사용", exc_info=True)
+
+        # Fallback — 하드코딩 브리핑
+        text = (
+            "📰 데일리 브리핑\n"
+            "\n"
+            "📈 시장 개요\n"
+            "  BTC $97,420 (+1.8%) Vol $38.2B\n"
+            "  ETH $3,285 (+2.4%)\n"
+            "  Fear&Greed: 62 (Greed)\n"
+            "  BTC 펀딩비: 0.012%\n"
+            "  김프: +1.85%\n"
+            "\n"
+            "💼 보유 포지션\n"
+            "  SOL/USDT long @ $148.20 (x3)\n"
+            "  ETH/USDT long @ $3,150 (x2)\n"
+            "  (평균 익절 +12.3% / 손절 -4.8%)\n"
+            "\n"
+            "📰 주요 뉴스\n"
+            "  · SEC, 이더리움 ETF 스테이킹 허용 검토 착수\n"
+            "  · 마이크로스트래티지 BTC 2,500개 추가 매수\n"
+            "  · 바이낸스 한국 시장 재진출 파트너십 논의 중\n"
+            "  · Solana DeFi TVL 사상 최고 $12.8B 돌파\n"
+            "\n"
+            "🔔 활성 알림\n"
+            "  · BTC $100K 돌파 시 알림 (현재 $97,420, -2.6%)\n"
+            "  · SOL 거래량 급증 시 알림\n"
+            "\n"
+            "💬 FORKER:\n"
+            "전반적으로 시장 분위기 나쁘지 않아. BTC가 $97K 위에서 "
+            "잘 버티고 있고, 알트도 따라 올라오는 중이야. "
+            "너 SOL 포지션 현재 +5.2%인데, 평소 패턴대로면 "
+            "+10% 근처에서 1차 익절하는 편이니까 조금 더 지켜봐도 좋겠어. "
+            "다만 오늘 밤 FOMC 의사록 공개 있으니까 변동성 주의!\n"
+            "\n"
+            "⚠️ TRADEFORK는 매매를 대행하지 않습니다. 최종 판단은 본인의 몫입니다."
+        )
+
+        session.add(ChatMessage(
+            user_id=user.id,
+            role="assistant",
+            content=text,
+            message_type="text",
+            intent="general",
+            metadata_={"type": "daily_briefing", "demo": True},
+        ))
+        await session.commit()
+
+        await _tg_app.bot.send_message(chat_id=telegram_id, text=text)
+
+    return {"status": "ok", "source": "fallback"}
+
+
 @app.get("/health")
 async def health() -> dict:
     """헬스체크 엔드포인트."""
