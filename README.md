@@ -445,7 +445,7 @@ Health check: `GET http://localhost:8000/health`
 - [x] Daily Briefing + /dailybrief Command
 - [ ] Basic / Enterprise Tiers
 - [ ] Trading Intelligence Graph (TIG) — 3D investment intelligence visualization
-- [ ] Electron Desktop App
+- [ ] Electron Desktop App — capture user behavior logs to deepen learning
 - [ ] Mobile App (React Native)
 - [ ] 100 Beta Users → Product-Market Fit validation
 
