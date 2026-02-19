@@ -22,11 +22,15 @@
 
 ## What is TRADEFORK?
 
-Most crypto bots give the same signals to everyone. **TRADEFORK is the opposite.** It assigns each user a personal AI agent called **FORKER** that learns *your* trading patterns, *your* risk tolerance, and *your* market intuition — then mirrors it back as signals framed as **"as you would see it"**, not "we recommend."
+Most crypto bots give the same signals to everyone. **TRADEFORK is the opposite.**
 
-FORKER analyzes your last 30 days of trades during onboarding, calibrates to your language (e.g., when you say *"it's dropping a bit"*, FORKER learns you mean roughly -3.2%), and continuously evolves through a **feedback loop**: every signal it sends, every trade you make (or don't make), and every correction you give feeds back into its intelligence model.
+TRADEFORK is a **Traders' Intelligence Twin Agent** — it learns and replicates your trading & investing intelligence. Your know-how, your strategy, your perspective, your alpha. Each user gets a personal AI agent called **FORKER** that doesn't just track the market; it understands how *you* see the market and mirrors that back.
 
-**The result:** An investment twin that thinks like you, watches the market 24/7, and speaks in your voice. The longer you use it, the sharper it gets.
+During onboarding, FORKER analyzes your last 30 days of trades to extract your patterns — preferred entries, risk tolerance, position sizing habits. It calibrates to your language (when you say *"it's dropping a bit"*, FORKER learns you mean roughly -3.2%). It internalizes your principles ("never chase pumps", "long only when funding < -0.1%"). Then it watches the market 24/7 through your lens.
+
+Every signal is framed as **"as you would see it"**, not "we recommend." Every feedback you give — agree, disagree, or ignore — sharpens the model. The result is a feedback loop where your alpha compounds: **Q(data) → Intelligence(learning) → Signal(judgment) → Feedback → Q.**
+
+**The longer you use it, the more it thinks like you.**
 
 ---
 
