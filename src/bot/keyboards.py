@@ -14,6 +14,7 @@ def exchange_selection() -> InlineKeyboardMarkup:
                 InlineKeyboardButton("업비트", callback_data="ex:upbit"),
                 InlineKeyboardButton("빗썸", callback_data="ex:bithumb"),
             ],
+            [InlineKeyboardButton("🎮 거래소 없이 체험하기", callback_data="ex:skip")],
             [InlineKeyboardButton("등록 완료 →", callback_data="ex:done")],
         ]
     )

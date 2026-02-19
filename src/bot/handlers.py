@@ -551,6 +551,20 @@ async def callback_handler(
                 session, tg_id, update.effective_user.username
             )
 
+            if action == "skip":
+                if user.onboarding_step >= 3:
+                    await query.edit_message_text("이미 처리됐어!")
+                    await session.commit()
+                    return
+                user.onboarding_step = 3
+                await session.flush()
+                await query.edit_message_text(
+                    "거래소는 나중에 연결해도 돼!\n"
+                    "먼저 너의 투자 스타일과 지키는 원칙을 자유롭게 알려줘."
+                )
+                await session.commit()
+                return
+
             if action == "more":
                 if user.onboarding_step >= 4:
                     await query.edit_message_text("이미 온보딩이 완료됐어!")

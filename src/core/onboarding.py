@@ -429,20 +429,47 @@ async def handle_style_input(
     sync_data = await calculate_sync_rate(session, user)
     sync_text = format_sync_rate(sync_data)
 
-    result = (
-        "파악했어!\n"
-        f"{sync_text}\n\n"
-        "이제 시장을 같이 볼 준비 됐어. 궁금한 거 물어보거나, 시그널이 오면 피드백해줘!\n\n"
-        "💡 내가 할 수 있는 것:\n"
-        "· 시장 질문 → 'VANA 왜 올라?'\n"
-        "· 실시간 알림 → 'BTC 10만 되면 알려줘'\n"
-        "· 실시간 감시 → '업비트 거래량 상위 3개가 BTC보다 높으면 알려줘'\n"
-        "· 브리핑 요청 → '거래대금 터지면 분석해줘'\n"
-        "· 차트 분석 → 차트 캡처📸 보내면 분석\n"
-        "· 데일리 브리핑 → 매일 아침 시장/포지션/뉴스 자동 전송 (/dailybrief 로 시간 설정)\n"
-        "· 투자 원칙 → /principles (추가/수정/삭제 자유)\n"
-        "· 싱크로율 → /sync"
+    # 거래소 연결 여부 확인 → 메시지 분기
+    from sqlalchemy import func, select as sa_select
+    from src.db.models import ExchangeConnection
+
+    conn_row = await session.execute(
+        sa_select(func.count()).where(
+            ExchangeConnection.user_id == user.id,
+            ExchangeConnection.is_active.is_(True),
+        )
     )
+    has_exchange = (conn_row.scalar() or 0) > 0
+
+    if has_exchange:
+        result = (
+            "파악했어!\n"
+            f"{sync_text}\n\n"
+            "이제 시장을 같이 볼 준비 됐어. 궁금한 거 물어보거나, 시그널이 오면 피드백해줘!\n\n"
+            "💡 내가 할 수 있는 것:\n"
+            "· 시장 질문 → 'VANA 왜 올라?'\n"
+            "· 실시간 알림 → 'BTC 10만 되면 알려줘'\n"
+            "· 실시간 감시 → '업비트 거래량 상위 3개가 BTC보다 높으면 알려줘'\n"
+            "· 브리핑 요청 → '거래대금 터지면 분석해줘'\n"
+            "· 차트 분석 → 차트 캡처📸 보내면 분석\n"
+            "· 데일리 브리핑 → 매일 아침 시장/포지션/뉴스 자동 전송 (/dailybrief 로 시간 설정)\n"
+            "· 투자 원칙 → /principles (추가/수정/삭제 자유)\n"
+            "· 싱크로율 → /sync"
+        )
+    else:
+        result = (
+            "파악했어!\n"
+            f"{sync_text}\n\n"
+            "거래소를 연결하면 매매 패턴까지 학습할 수 있어.\n"
+            "일단 시장 질문이나 알림 설정부터 해봐!\n\n"
+            "💡 내가 할 수 있는 것:\n"
+            "· 시장 질문 → 'VANA 왜 올라?'\n"
+            "· 실시간 알림 → 'BTC 10만 되면 알려줘'\n"
+            "· 차트 분석 → 차트 캡처📸 보내면 분석\n"
+            "· 데일리 브리핑 → /dailybrief 로 시간 설정\n"
+            "· 투자 원칙 → /principles\n"
+            "· 거래소 연결 → /start"
+        )
     return result
 
 
