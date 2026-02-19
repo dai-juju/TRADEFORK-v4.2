@@ -42,6 +42,7 @@ class User(Base):
     style_parsed = Column(_JsonType, nullable=True)
     daily_signal_count = Column(Integer, nullable=False, default=0)
     daily_signal_reset_at = Column(DateTime(timezone=True), nullable=True)
+    briefing_hour = Column(Integer, nullable=True, default=8)  # KST 0-23, None=OFF
     is_active = Column(Boolean, nullable=False, default=True)
     last_active_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
@@ -245,6 +246,9 @@ class Signal(Base):
     reasoning = Column(Text, nullable=False)
     counter_argument = Column(Text, nullable=True)
     confidence = Column(Float, nullable=False)
+    confidence_style = Column(Float, nullable=True)    # style_match 0-1
+    confidence_history = Column(Float, nullable=True)  # historical_similar 0-1
+    confidence_market = Column(Float, nullable=True)   # market_context 0-1
     symbol = Column(String(30), nullable=True)
     direction = Column(
         String(10), nullable=True

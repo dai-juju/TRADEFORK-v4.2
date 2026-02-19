@@ -43,6 +43,7 @@ from telegram.ext import (
 
 from src.bot.handlers import (
     callback_handler,
+    dailybrief_command,
     help_command,
     message_handler,
     photo_handler,
@@ -112,6 +113,7 @@ async def lifespan(app: FastAPI):
         _tg_app.add_handler(CommandHandler("help", help_command))
         _tg_app.add_handler(CommandHandler("sync", sync_command))
         _tg_app.add_handler(CommandHandler("principles", principles_command))
+        _tg_app.add_handler(CommandHandler("dailybrief", dailybrief_command))
         _tg_app.add_handler(CallbackQueryHandler(callback_handler))
         _tg_app.add_handler(MessageHandler(filters.PHOTO, photo_handler))
         _tg_app.add_handler(
@@ -181,9 +183,19 @@ async def lifespan(app: FastAPI):
             misfire_grace_time=300,
         )
 
+        # 데일리 브리핑 (5분마다 체크 → KST 정시에 전송)
+        _scheduler.add_job(
+            _daily_briefing_job,
+            "interval",
+            minutes=5,
+            id="daily_briefing_job",
+            name="데일리 브리핑",
+            misfire_grace_time=300,
+        )
+
         _scheduler.start()
         logger.info(
-            "APScheduler 시작: Patrol(%ds), 온도관리(1h), 시그널리셋(00:00 UTC), 트리거정리(1h)",
+            "APScheduler 시작: Patrol(%ds), 온도관리(1h), 시그널리셋(00:00 UTC), 트리거정리(1h), 브리핑(5min)",
             PRO_PATROL_INTERVAL_SECONDS,
         )
 
@@ -497,6 +509,50 @@ async def _trigger_cleanup_job() -> None:
                 )
     except Exception:
         logger.error("트리거 자동 정리 실패", exc_info=True)
+
+
+async def _daily_briefing_job() -> None:
+    """데일리 브리핑 — 매 5분 실행, 현재 KST 시각 정시 유저에게 전송."""
+    if not _tg_app:
+        return
+
+    from src.core.briefing import generate_and_send_briefing
+    from src.db.models import User
+    from src.db.session import async_session_factory
+
+    kst = timezone(timedelta(hours=9))
+    now_kst = datetime.now(kst)
+    current_hour = now_kst.hour
+    current_minute = now_kst.minute
+
+    # 정시 0~4분에만 실행 (5분 간격 스케줄러 → 1시간에 1번만 트리거)
+    if current_minute > 4:
+        return
+
+    try:
+        async with async_session_factory() as session:
+            result = await session.execute(
+                select(User).where(
+                    User.is_active.is_(True),
+                    User.onboarding_step >= 4,
+                    User.briefing_hour == current_hour,
+                )
+            )
+            users = result.scalars().all()
+
+            for user in users:
+                try:
+                    await generate_and_send_briefing(session, user, _tg_app.bot)
+                except Exception:
+                    logger.error(
+                        "데일리 브리핑 유저 실패: %s",
+                        user.telegram_id, exc_info=True,
+                    )
+
+            await session.commit()
+
+    except Exception:
+        logger.error("데일리 브리핑 작업 실패", exc_info=True)
 
 
 # ==================================================================

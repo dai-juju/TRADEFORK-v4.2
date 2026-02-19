@@ -51,6 +51,36 @@ async def _migrate_timestamps_to_tz() -> None:
     logger.info("TIMESTAMP → TIMESTAMPTZ 마이그레이션 완료")
 
 
+async def _migrate_add_briefing_hour() -> None:
+    """users 테이블에 briefing_hour 컬럼 추가."""
+    if _is_sqlite:
+        return
+    async with engine.begin() as conn:
+        try:
+            await conn.execute(text(
+                "ALTER TABLE users ADD COLUMN briefing_hour INTEGER DEFAULT 8"
+            ))
+        except Exception:
+            pass  # 이미 존재
+    logger.info("briefing_hour 마이그레이션 완료")
+
+
+async def _migrate_add_confidence_axes() -> None:
+    """signals 테이블에 3축 confidence 컬럼 추가."""
+    if _is_sqlite:
+        return
+    cols = ["confidence_style", "confidence_history", "confidence_market"]
+    async with engine.begin() as conn:
+        for col_name in cols:
+            try:
+                await conn.execute(text(
+                    f"ALTER TABLE signals ADD COLUMN {col_name} FLOAT"
+                ))
+            except Exception:
+                pass  # 이미 존재
+    logger.info("confidence 3축 마이그레이션 완료")
+
+
 async def create_tables() -> None:
     """모든 테이블을 DB에 생성 (이미 존재하면 스킵)."""
     await _enable_wal()
@@ -58,6 +88,8 @@ async def create_tables() -> None:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("DB 테이블 생성 완료")
     await _migrate_timestamps_to_tz()
+    await _migrate_add_briefing_hour()
+    await _migrate_add_confidence_axes()
 
 
 async def drop_tables() -> None:

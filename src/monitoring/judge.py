@@ -103,6 +103,9 @@ async def judge_signal(
         reasoning=parsed["reasoning"],
         counter_argument=parsed.get("counter_argument"),
         confidence=parsed["confidence"],
+        confidence_style=parsed.get("confidence_style"),
+        confidence_history=parsed.get("confidence_history"),
+        confidence_market=parsed.get("confidence_market"),
         symbol=symbol,
         direction=parsed.get("direction"),
         stop_loss=parsed.get("stop_loss"),
@@ -194,6 +197,35 @@ def _check_signal_limit(user: User) -> bool:
 # ------------------------------------------------------------------
 
 
+def _parse_confidence(raw_conf: Any) -> dict[str, float | None]:
+    """confidence를 파싱 — 3축 dict 또는 단일 float 모두 처리.
+
+    Returns:
+        confidence: overall 가중평균
+        confidence_style/history/market: 각 축 (없으면 None)
+    """
+    if isinstance(raw_conf, dict):
+        style = float(raw_conf.get("style_match", 0.5))
+        history = float(raw_conf.get("historical_similar", 0.5))
+        market = float(raw_conf.get("market_context", 0.5))
+        overall = style * 0.3 + history * 0.3 + market * 0.4
+        return {
+            "confidence": overall,
+            "confidence_style": style,
+            "confidence_history": history,
+            "confidence_market": market,
+        }
+    val = float(raw_conf) if raw_conf else 0.5
+    if val > 1:
+        val = val / 100
+    return {
+        "confidence": val,
+        "confidence_style": None,
+        "confidence_history": None,
+        "confidence_market": None,
+    }
+
+
 def _parse_judge_response(raw: str) -> dict[str, Any]:
     """Opus 응답을 구조화된 시그널로 파싱.
 
@@ -206,14 +238,15 @@ def _parse_judge_response(raw: str) -> dict[str, Any]:
     if json_match:
         try:
             data = json.loads(json_match.group(1))
+            conf = _parse_confidence(data.get("confidence", 0.5))
             return {
                 "signal_type": data.get("signal_type", "trade_signal"),
                 "direction": data.get("direction", "watch"),
                 "reasoning": data.get("reasoning", raw[:500]),
                 "counter_argument": data.get("counter_argument"),
-                "confidence": float(data.get("confidence", 0.5)),
                 "stop_loss": data.get("stop_loss"),
                 "content": _build_content(data, raw),
+                **conf,
             }
         except (json.JSONDecodeError, ValueError):
             pass
@@ -255,6 +288,9 @@ def _parse_judge_response(raw: str) -> dict[str, Any]:
         "reasoning": raw[:1000],
         "counter_argument": counter,
         "confidence": confidence,
+        "confidence_style": None,
+        "confidence_history": None,
+        "confidence_market": None,
         "stop_loss": stop_loss,
         "content": raw[:2000],
     }
@@ -275,8 +311,15 @@ def _build_content(data: dict[str, Any], raw: str) -> str:
 # ------------------------------------------------------------------
 
 
+def _confidence_bar(label: str, value: float) -> str:
+    """Unicode 막대 그래프 한 줄 생성."""
+    filled = round(value * 10)
+    bar = "█" * filled + "░" * (10 - filled)
+    return f"  {label}  {bar}  {value*100:.0f}%"
+
+
 def _format_signal_message(parsed: dict[str, Any], symbol: str) -> str:
-    """시그널을 텔레그램 메시지로 포맷."""
+    """시그널을 텔레그램 메시지로 포맷 — 3축 확신도 바 그래프."""
     direction = parsed.get("direction", "watch")
     dir_emoji = {
         "long": "🟢 롱",
@@ -285,7 +328,7 @@ def _format_signal_message(parsed: dict[str, Any], symbol: str) -> str:
         "watch": "👀 관망",
     }.get(direction, "👀 관망")
 
-    confidence = parsed.get("confidence", 0.5)
+    overall = parsed.get("confidence", 0.5)
 
     lines = [f"🎯 {symbol} {dir_emoji} 상황"]
     lines.append("")
@@ -294,11 +337,19 @@ def _format_signal_message(parsed: dict[str, Any], symbol: str) -> str:
     counter = parsed.get("counter_argument") or "반대 시나리오도 항상 존재해. 리스크 관리 필수."
     lines.append(f"\n⚠️ 반대 근거:\n{counter[:400]}")
 
-    lines.append(f"\n📍 확신도: {confidence*100:.0f}%")
+    lines.append(f"\n📍 확신도: {overall*100:.0f}%")
+
+    style = parsed.get("confidence_style")
+    history = parsed.get("confidence_history")
+    market = parsed.get("confidence_market")
+    if style is not None and history is not None and market is not None:
+        lines.append(_confidence_bar("스타일 매칭", style))
+        lines.append(_confidence_bar("유사 과거 ", history))
+        lines.append(_confidence_bar("시장 맥락 ", market))
 
     stop = parsed.get("stop_loss")
     if stop:
-        lines.append(f"🛑 손절: {stop}")
+        lines.append(f"\n🛑 손절: {stop}")
 
     lines.append("\n어떻게 생각해?")
     lines.append("\n⚠️ TRADEFORK는 매매를 대행하지 않습니다. 최종 판단은 본인의 몫입니다.")

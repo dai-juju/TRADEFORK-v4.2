@@ -10,7 +10,7 @@ from telegram import Update
 from telegram.constants import ChatAction
 from telegram.ext import ContextTypes
 
-from src.bot.keyboards import add_more_exchange, exchange_selection
+from src.bot.keyboards import add_more_exchange, briefing_time_selection, exchange_selection
 from src.core.auth import get_or_create_user
 from src.core.chat import process_message
 from src.core.onboarding import (
@@ -108,6 +108,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/start — 처음 시작 + 온보딩\n"
         "/sync — 싱크로율 조회 (FORKER가 너를 얼마나 아는지)\n"
         "/principles — 투자 원칙 조회/수정 (추가/수정/삭제 자유)\n"
+        "/dailybrief — 데일리 브리핑 시간 설정/변경\n"
         "/help — 이 안내\n\n"
         "💡 명령어 없이 자유롭게 대화해도 돼!\n\n"
         "📊 시장 질문\n"
@@ -201,6 +202,48 @@ async def principles_command(
     context.user_data["principles_editing_at"] = time.time()
 
 
+async def dailybrief_command(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """/dailybrief — 데일리 브리핑 시간 설정."""
+    if not update.effective_user or not update.message:
+        return
+
+    tg_id = update.effective_user.id
+
+    async with async_session_factory() as session:
+        user, _ = await get_or_create_user(
+            session, tg_id, update.effective_user.username
+        )
+
+        if user.onboarding_step < 4:
+            await update.message.reply_text(
+                "아직 온보딩이 완료되지 않았어. /start 로 시작해봐!"
+            )
+            await session.commit()
+            return
+
+        current = user.briefing_hour
+        if current is not None:
+            status = f"현재 설정: 매일 {current}:00 KST"
+        else:
+            status = "현재 설정: OFF (브리핑 비활성)"
+
+        msg = (
+            f"📰 데일리 브리핑\n\n"
+            f"{status}\n\n"
+            f"시간을 선택하거나 숫자(0~23)를 직접 입력해:"
+        )
+        await update.message.reply_text(
+            msg,
+            reply_markup=briefing_time_selection(current),
+        )
+        await session.commit()
+
+    context.user_data["briefing_editing"] = True
+    context.user_data["briefing_editing_at"] = time.time()
+
+
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """일반 메시지 처리 — 온보딩 단계별 분기 + principles 편집 + Q2 채팅."""
     if not update.effective_user or not update.message or not update.message.text:
@@ -291,6 +334,38 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             # 타임아웃 or 편집 모드 아님 → 플래그 정리
             context.user_data.pop("principles_editing", None)
             context.user_data.pop("principles_editing_at", None)
+
+            # /dailybrief 직접 입력 모드 (60초 타임아웃)
+            brief_editing = context.user_data.get("briefing_editing", False)
+            brief_editing_at = context.user_data.get("briefing_editing_at", 0)
+            if brief_editing and (time.time() - brief_editing_at < PRINCIPLES_TIMEOUT):
+                context.user_data.pop("briefing_editing", None)
+                context.user_data.pop("briefing_editing_at", None)
+                reply: str | None = None
+                if text.lower() == "off":
+                    user.briefing_hour = None
+                    reply = "📰 데일리 브리핑 OFF."
+                else:
+                    try:
+                        hour = int(text)
+                        if 0 <= hour <= 23:
+                            user.briefing_hour = hour
+                            reply = f"📰 매일 {hour}:00 KST에 브리핑 보내줄게!"
+                        else:
+                            reply = "0~23 사이 숫자를 입력해줘."
+                    except ValueError:
+                        pass  # 숫자가 아니면 일반 채팅으로 진행
+                if reply is not None:
+                    session.add(ChatMessage(
+                        user_id=user.id, role="assistant",
+                        content=reply, message_type="text",
+                    ))
+                    await update.message.reply_text(reply)
+                    await session.commit()
+                    return
+            else:
+                context.user_data.pop("briefing_editing", None)
+                context.user_data.pop("briefing_editing_at", None)
 
             # 시그널 피드백 자연어 대기 중
             if context.user_data.pop("awaiting_signal_feedback", False):
@@ -544,6 +619,26 @@ async def callback_handler(
                 "❌ 반대 의견 기록했어. 이유를 말해주면 더 잘 배울 수 있어!"
             )
             context.user_data["awaiting_signal_feedback"] = True
+        return
+
+    # --- 브리핑 시간 설정 ---
+    if data.startswith("brief:"):
+        value = data[6:]
+        async with async_session_factory() as session:
+            user, _ = await get_or_create_user(
+                session, tg_id, update.effective_user.username
+            )
+            if value == "off":
+                user.briefing_hour = None
+                await session.commit()
+                await query.edit_message_text("📰 데일리 브리핑 OFF. 다시 켜려면 /dailybrief")
+            else:
+                hour = int(value)
+                user.briefing_hour = hour
+                await session.commit()
+                await query.edit_message_text(
+                    f"📰 매일 {hour}:00 KST에 브리핑 보내줄게!"
+                )
         return
 
     # --- 미처리 콜백 ---

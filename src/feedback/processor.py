@@ -87,6 +87,9 @@ async def process_signal_feedback(
             "symbol": signal.symbol,
             "direction": signal.direction,
             "confidence": signal.confidence,
+            "confidence_style": signal.confidence_style,
+            "confidence_history": signal.confidence_history,
+            "confidence_market": signal.confidence_market,
             "user_agreed": agreed,
         },
     )

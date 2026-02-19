@@ -53,3 +53,26 @@ def add_more_exchange() -> InlineKeyboardMarkup:
             ]
         ]
     )
+
+
+def briefing_time_selection(current_hour: int | None = 8) -> InlineKeyboardMarkup:
+    """데일리 브리핑 시간 선택 키보드."""
+    def _label(h: int) -> str:
+        marker = " ✓" if h == current_hour else ""
+        return f"{h}:00 KST{marker}"
+
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(_label(7), callback_data="brief:7"),
+                InlineKeyboardButton(_label(8), callback_data="brief:8"),
+                InlineKeyboardButton(_label(9), callback_data="brief:9"),
+            ],
+            [
+                InlineKeyboardButton(
+                    "OFF" + (" ✓" if current_hour is None else ""),
+                    callback_data="brief:off",
+                ),
+            ],
+        ]
+    )
