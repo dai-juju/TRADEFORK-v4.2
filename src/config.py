@@ -31,6 +31,9 @@ TAVILY_API_KEY: str = os.getenv("TAVILY_API_KEY", "")
 CMC_API_KEY: str = os.getenv("CMC_API_KEY", "")
 CRYPTOPANIC_API_KEY: str = os.getenv("CRYPTOPANIC_API_KEY", "")
 
+# --- 서버 Static IP (Railway Static IP 또는 수동 설정) ---
+STATIC_IP: str = os.getenv("STATIC_IP", "")
+
 # --- 거래소 (개발 테스트용) ---
 BINANCE_API_KEY: str = os.getenv("BINANCE_API_KEY", "")
 BINANCE_API_SECRET: str = os.getenv("BINANCE_API_SECRET", "")

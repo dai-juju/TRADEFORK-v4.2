@@ -21,10 +21,17 @@ _server_ip: str | None = None
 
 
 async def get_server_ip() -> str:
-    """서버의 공개 IP를 가져와 캐시."""
+    """서버의 공개 IP를 가져와 캐시. STATIC_IP 환경변수가 있으면 우선 사용."""
     global _server_ip
     if _server_ip:
         return _server_ip
+
+    from src.config import STATIC_IP
+
+    if STATIC_IP:
+        _server_ip = STATIC_IP
+        return _server_ip
+
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             resp = await client.get("https://api.ipify.org")
@@ -45,26 +52,27 @@ async def get_exchange_guide(exchange_name: str) -> str | None:
             "바이낸스 API 등록 방법:\n"
             "1. binance.com → API Management\n"
             "2. 'Create API' → Label 입력\n"
-            f"3. IP Access Restrictions → <code>{ip}</code> 입력\n"
-            "4. ⚠️ 권한: 'Enable Reading'만 체크! 나머지 전부 OFF\n"
-            "5. API Key와 Secret Key를 아래 형식으로 보내줘:\n\n"
+            "3. ⚠️ 권한: 'Enable Reading'만 체크! 나머지 전부 OFF\n"
+            "4. Edit restrictions → <b>IP access restrictions</b> 선택\n"
+            f"5. 허용 IP에 <code>{ip}</code> 입력\n"
+            "6. API Key와 Secret Key를 아래 형식으로 보내줘:\n\n"
             "<code>API_KEY:SECRET_KEY</code>\n\n"
             "(한 줄에 콜론으로 구분)"
         ),
         "upbit": (
             "업비트 API 등록 방법:\n"
-            "1. upbit.com → 마이페이지 → Open API 관리\n"
+            "1. upbit.com → 마이페이지 → <b>Open API 관리</b>\n"
             "2. '자산조회'만 체크! 나머지 OFF\n"
-            f"3. 허용 IP 주소: <code>{ip}</code> 입력\n"
+            f"3. 허용 IP 주소에 <code>{ip}</code> 입력\n"
             "4. Access Key와 Secret Key를 아래 형식으로 보내줘:\n\n"
             "<code>ACCESS_KEY:SECRET_KEY</code>\n\n"
             "(한 줄에 콜론으로 구분)"
         ),
         "bithumb": (
             "빗썸 API 등록 방법:\n"
-            "1. bithumb.com → 마이페이지 → API 관리\n"
+            "1. bithumb.com → 마이페이지 → <b>API 관리</b>\n"
             "2. '조회' 권한만 활성화! 나머지 OFF\n"
-            f"3. 허용 IP: <code>{ip}</code> 입력\n"
+            f"3. IP 주소 등록에 <code>{ip}</code> 입력\n"
             "4. API Key와 Secret Key를 아래 형식으로 보내줘:\n\n"
             "<code>API_KEY:SECRET_KEY</code>\n\n"
             "(한 줄에 콜론으로 구분)"
