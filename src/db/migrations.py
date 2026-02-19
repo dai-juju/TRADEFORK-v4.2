@@ -2,10 +2,53 @@
 
 import logging
 
+from sqlalchemy import text
+
 from src.db.models import Base
-from src.db.session import _enable_wal, engine
+from src.db.session import _enable_wal, _is_sqlite, engine
 
 logger = logging.getLogger(__name__)
+
+
+async def _migrate_timestamps_to_tz() -> None:
+    """PostgreSQL: TIMESTAMP → TIMESTAMPTZ 마이그레이션 (한 번만 실행)."""
+    if _is_sqlite:
+        return
+
+    # 변경 대상: (테이블, 컬럼) 목록
+    columns = [
+        ("users", "daily_signal_reset_at"),
+        ("users", "last_active_at"),
+        ("users", "created_at"),
+        ("users", "updated_at"),
+        ("exchange_connections", "last_checked_at"),
+        ("exchange_connections", "created_at"),
+        ("episodes", "created_at"),
+        ("episodes", "updated_at"),
+        ("principles", "created_at"),
+        ("trades", "opened_at"),
+        ("trades", "closed_at"),
+        ("trades", "created_at"),
+        ("base_streams", "last_mentioned_at"),
+        ("base_streams", "created_at"),
+        ("base_streams", "updated_at"),
+        ("user_triggers", "triggered_at"),
+        ("user_triggers", "created_at"),
+        ("signals", "created_at"),
+        ("chat_messages", "created_at"),
+        ("patrol_logs", "created_at"),
+    ]
+
+    async with engine.begin() as conn:
+        for table, col in columns:
+            try:
+                await conn.execute(text(
+                    f"ALTER TABLE {table} ALTER COLUMN {col} "
+                    f"TYPE TIMESTAMPTZ USING {col} AT TIME ZONE 'UTC'"
+                ))
+            except Exception:
+                pass  # 이미 TIMESTAMPTZ이거나 테이블 미존재 → 무시
+    logger.info("TIMESTAMP → TIMESTAMPTZ 마이그레이션 완료")
 
 
 async def create_tables() -> None:
@@ -14,6 +57,7 @@ async def create_tables() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("DB 테이블 생성 완료")
+    await _migrate_timestamps_to_tz()
 
 
 async def drop_tables() -> None:

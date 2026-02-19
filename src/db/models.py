@@ -41,12 +41,12 @@ class User(Base):
     style_raw = Column(Text, nullable=True)
     style_parsed = Column(_JsonType, nullable=True)
     daily_signal_count = Column(Integer, nullable=False, default=0)
-    daily_signal_reset_at = Column(DateTime, nullable=True)
+    daily_signal_reset_at = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
-    last_active_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    last_active_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(
-        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
     # relationships — passive_deletes=True: DB의 ON DELETE CASCADE에 위임
@@ -90,8 +90,8 @@ class ExchangeConnection(Base):
     api_key_encrypted = Column(LargeBinary, nullable=False)
     api_secret_encrypted = Column(LargeBinary, nullable=False)
     is_active = Column(Boolean, nullable=False, default=True)
-    last_checked_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    last_checked_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="exchange_connections")
 
@@ -126,9 +126,9 @@ class Episode(Base):
     pinecone_id = Column(String(255), nullable=True, unique=True)
     embedding_text = Column(Text, nullable=False)
 
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(
-        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
     user = relationship("User", back_populates="episodes")
@@ -147,7 +147,7 @@ class Principle(Base):
         String(30), nullable=False
     )  # "user_input" | "llm_extracted"
     is_active = Column(Boolean, nullable=False, default=True)
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="principles")
 
@@ -179,9 +179,9 @@ class Trade(Base):
     episode_id = Column(
         Integer, ForeignKey("episodes.id", ondelete="SET NULL"), nullable=True
     )
-    opened_at = Column(DateTime, nullable=False)
-    closed_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    opened_at = Column(DateTime(timezone=True), nullable=False)
+    closed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="trades")
     episode = relationship("Episode", back_populates="trades")
@@ -199,11 +199,11 @@ class BaseStream(Base):
     symbol = Column(String(30), nullable=True)
     config = Column(_JsonType, nullable=False)
     temperature = Column(String(10), nullable=False, default="hot")  # "hot" | "warm" | "cold"
-    last_mentioned_at = Column(DateTime, nullable=False, server_default=func.now())
+    last_mentioned_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     last_value = Column(_JsonType, nullable=True)
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(
-        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
     user = relationship("User", back_populates="base_streams")
@@ -228,8 +228,8 @@ class UserTrigger(Base):
         String(20), nullable=False
     )  # "user_request" | "llm_auto" | "patrol"
     is_active = Column(Boolean, nullable=False, default=True)
-    triggered_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    triggered_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="user_triggers")
 
@@ -261,7 +261,7 @@ class Signal(Base):
     episode_id = Column(
         Integer, ForeignKey("episodes.id", ondelete="SET NULL"), nullable=True
     )
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="signals")
     episode = relationship("Episode", back_populates="signals")
@@ -285,7 +285,7 @@ class ChatMessage(Base):
     )  # "alert" | "signal_trigger" | "market_question" | "general" | "review"
     metadata_ = Column("metadata", _JsonType, nullable=True)
     telegram_message_id = Column(BigInteger, nullable=True)
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="chat_messages")
 
@@ -302,7 +302,7 @@ class PatrolLog(Base):
     findings = Column(_JsonType, nullable=False)
     actions_taken = Column(_JsonType, nullable=False)
     base_temp_changes = Column(_JsonType, nullable=True)
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="patrol_logs")
 
