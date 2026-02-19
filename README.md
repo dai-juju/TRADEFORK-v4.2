@@ -12,9 +12,9 @@
 [![Pinecone](https://img.shields.io/badge/Pinecone-Vector_DB-000000?style=for-the-badge)](https://pinecone.io)
 [![Anthropic](https://img.shields.io/badge/Claude-Opus_4.6-D4A574?style=for-the-badge&logo=anthropic&logoColor=white)](https://anthropic.com)
 
-**Live on Telegram** · **Pro Tier** · **v4.2** · **8,100+ lines of production code**
+**Live on Telegram** · **Pro Tier** · **v4.2** · **8,500+ lines of production code**
 
-[Architecture](#architecture) · [Features](#key-features) · [Tech Stack](#tech-stack) · [Quick Start](#quick-start) · [Roadmap](#roadmap)
+[Try it](#try-it) · [Architecture](#architecture) · [Features](#key-features) · [Tech Stack](#tech-stack) · [Quick Start](#quick-start) · [Roadmap](#roadmap)
 
 </div>
 
@@ -31,6 +31,17 @@ During onboarding, FORKER analyzes your last 30 days of trades to extract your p
 Every signal is framed as **"as you would see it"**, not "we recommend." Every feedback you give — agree, disagree, or ignore — sharpens the model. The result is a feedback loop where your alpha compounds: **Q(data) → Intelligence(learning) → Signal(judgment) → Feedback → Q.**
 
 **The longer you use it, the more it thinks like you.**
+
+---
+
+## Try it
+
+| | Link | Description |
+|---|------|-------------|
+| 🎮 | **[Pre-learned FORKER](https://t.me/FORKER_DEMO_BOT)** | 3 weeks of learned trading intelligence — chat with a trained AI twin instantly |
+| 🚀 | **[Fresh Onboarding](https://t.me/YOUR_FORKER_BOT)** | Start from scratch — tap "거래소 없이 체험하기" (Try without exchange) to skip API setup |
+
+> Two separate bots, two separate chat windows. Each user gets fully independent data — your conversation is private and never shared.
 
 ---
 
@@ -146,6 +157,7 @@ graph TB
 | | Feature | Description |
 |---|---------|-------------|
 | 🔄 | **Q1 — Trade Auto-Detection** | Connects to Binance/Upbit/Bithumb via read-only API. Detects new trades in real-time, filters dust/deposits, and FORKER infers *your* reasoning using Opus AI. |
+| 🎮 | **Dual Bot System** | Two Telegram bots — Demo Bot (pre-learned FORKER, instant experience) and Main Bot (full onboarding). Shared backend, independent user data, separate chat windows. |
 | 💬 | **Q2 — Intelligent Chat** | Every message enriched with full Intelligence context. Intent classification happens *inside* the same LLM call (zero extra cost). Autonomous web search when needed. |
 | 📋 | **Q3 — Principles Management** | `/principles` — Add, edit, delete, or replace all your trading rules. FORKER references these in every signal and risk warning. |
 | 📡 | **3-Tier Trigger System** | ① Instant alerts (code-based, 0 cost) ② Structured signals (~5 min) ③ LLM-evaluated conditions (~1 hour). LLM auto-upgrades ③→①. 3 sources: user_request, llm_auto, patrol. |
@@ -213,7 +225,7 @@ sequenceDiagram
     participant AI as 🧠 Claude Opus
 
     U->>F: /start
-    F->>U: Welcome + exchange selection<br/>(Binance / Upbit / Bithumb)
+    F->>U: Welcome + exchange selection<br/>(Binance / Upbit / Bithumb)<br/>+ "Try without exchange"
     U->>F: API Key + Secret (read-only)
     F->>F: AES-256 encrypt & store
     F->>EX: Fetch 30 days of trades
@@ -274,7 +286,7 @@ TRADEFORK-v4.2/
 │   ├── main.py                    # FastAPI app + lifespan + scheduler
 │   ├── config.py                  # Environment variables + constants
 │   ├── bot/                       # Telegram bot layer
-│   │   ├── handlers.py            #   /start, /sync, /principles, /dailybrief, /help + messages
+│   │   ├── handlers.py            #   /start, /sync, /principles, /dailybrief, /help + demo_start
 │   │   ├── keyboards.py           #   Inline keyboards (onboarding, feedback, briefing time)
 │   │   └── formatter.py           #   Message formatting utilities
 │   ├── core/                      # Core business logic
@@ -282,6 +294,7 @@ TRADEFORK-v4.2/
 │   │   ├── chat.py                #   Q2 chat engine (intent + response in one call)
 │   │   ├── onboarding.py          #   Full onboarding flow (30-day analysis)
 │   │   ├── briefing.py            #   Daily briefing (market + positions + news + charts + commentary)
+│   │   ├── demo_seed.py           #   Demo mode data seeding (30-day realistic trading data)
 │   │   └── sync_rate.py           #   Sync rate calculation (0-100%)
 │   ├── intelligence/              # FORKER's brain
 │   │   ├── episode.py             #   Episode CRUD + Intelligence context builder
@@ -325,7 +338,7 @@ TRADEFORK-v4.2/
 └── CLAUDE.md                      # AI-assisted development instructions
 ```
 
-**42 source files · 8,100+ lines · 11 modules**
+**43 source files · 8,500+ lines · 11 modules**
 
 ---
 
@@ -370,7 +383,7 @@ Health check: `GET http://localhost:8000/health`
 {
   "status": "ok",
   "service": "tradefork",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "users": 1,
   "scheduler": "running",
   "bot": "running"
@@ -383,7 +396,8 @@ Health check: `GET http://localhost:8000/health`
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `TELEGRAM_BOT_TOKEN` | Yes | Telegram BotFather token |
+| `TELEGRAM_BOT_TOKEN` | Yes | Main bot (onboarding) token |
+| `TELEGRAM_DEMO_BOT_TOKEN` | No | Demo bot (pre-learned) token |
 | `ANTHROPIC_API_KEY` | Yes | Anthropic API key for Claude |
 | `PINECONE_API_KEY` | Yes | Pinecone vector DB key |
 | `PINECONE_INDEX_NAME` | No | Default: `tradefork-episodes` |
@@ -411,26 +425,26 @@ Health check: `GET http://localhost:8000/health`
 
 ---
 
-## Recent Updates (v4.2.1)
+## Recent Updates (v4.2.2)
 
 | Change | Description |
 |--------|-------------|
-| **3-Axis Confidence** | Signal confidence decomposed into 3 axes: style_match (30%), historical_similar (30%), market_context (40%). Unicode bar graph display in Telegram. Backward-compatible with single float. |
-| **Daily Briefing** | Scheduled daily briefing with market overview, positions, news, active triggers (with proximity hints), chart captures, and Intelligence-based personalized commentary. Configurable via `/dailybrief` (KST 0-23 or OFF). Default: 8:00 KST. |
-| **Typing Indicator** | Shows "💭 생각하는 중..." before LLM response for better UX. Error-resilient — falls back to new message on edit failure. |
-| **Symbol Normalization** | Auto-strips trading pair suffixes (IRUSDT → IR, SOLUSDT → SOL) for accurate LLM recognition. Supports USDT/KRW/BTC/BUSD/USD/PERP. |
-| **3-Source Trigger System** | Triggers now track their origin: `user_request` (user-initiated), `llm_auto` (FORKER proactive), `patrol` (anomaly-detected). Non-user triggers auto-delete after 72 hours. |
-| **Patrol Auto-Triggers** | Patrol detects anomalies (price spikes, funding extremes, OI surges) and automatically creates `llm_evaluated` triggers for the user's primary symbols. |
-| **Funding Rate Fix** | Trigger matching now uses `rate_pct` (percentage) instead of raw `rate` (decimal), ensuring conditions like "ETH funding < -0.1%" fire correctly. |
-| **Episode Error Resilience** | Pinecone upsert failures no longer crash the chat pipeline. Session state is safely recovered via rollback. |
-| **Proactive LLM Triggers** | FORKER now auto-generates monitoring triggers based on user patterns (e.g., funding alerts for funding-rate traders) with `source: llm_auto`. |
+| **Dual Bot System** | Two independent Telegram bots — Demo Bot (`@FORKER_DEMO_BOT`, pre-learned FORKER) and Main Bot (`@YOUR_FORKER_BOT`, full onboarding). Shared backend, independent user data, separate chat windows. |
+| **Trial Mode** | "거래소 없이 체험하기" button during onboarding — skips exchange connection and trade analysis, jumps straight to style input. Simplified completion message guides users to explore features. |
+| **Demo Mode** | `/start demo` seeds 30 days of realistic trading data (15 trades, 10 episodes, 5 principles, 3 signals, 2 triggers, 10 chat messages) for instant demo experience. |
+| **Demo Trigger Endpoints** | `POST /demo/signal`, `/demo/briefing`, `/demo/daily` — manually trigger signal, patrol briefing, and daily briefing via HTTP for demo video recording. |
+| **Retina Chart Capture** | 2x device scale factor, 1280x720 (16:9), hidden toolbars, zero-margin layout — charts fill the entire Telegram photo. |
+| **3-Axis Confidence** | Signal confidence decomposed into 3 axes: style_match (30%), historical_similar (30%), market_context (40%). Unicode bar graph display in Telegram. |
+| **Daily Briefing** | Scheduled daily briefing with market overview, positions, news, active triggers, chart captures, and Intelligence-powered commentary. `/dailybrief` to configure. |
+| **3-Source Trigger System** | Triggers track origin: `user_request`, `llm_auto`, `patrol`. Non-user triggers auto-delete after 72 hours. |
+| **Patrol Auto-Triggers** | Patrol detects anomalies and auto-creates `llm_evaluated` triggers for primary symbols. |
 
 ---
 
 ## Roadmap
 
 - [x] Core Pipeline (Q → Intelligence → Tier 1/2/3 → Signal → Feedback)
-- [x] Telegram Bot (4 commands + free-form chat)
+- [x] Telegram Bot (5 commands + free-form chat)
 - [x] 3-Tier Trigger System (Alert / Signal / LLM-evaluated)
 - [x] Exchange Integration (Binance / Upbit / Bithumb)
 - [x] Intelligence Module (Episodes + Calibration + Pattern Analysis)
@@ -443,6 +457,11 @@ Health check: `GET http://localhost:8000/health`
 - [x] Symbol Normalization + Typing Indicator UX
 - [x] 3-Axis Signal Confidence (style / history / market)
 - [x] Daily Briefing + /dailybrief Command
+- [x] Trial Mode — onboarding without exchange ("거래소 없이 체험하기")
+- [x] Demo Mode — `/start demo` seeds 30 days of realistic trading data
+- [x] Dual Bot System — separate demo bot + main bot for independent experiences
+- [x] Demo Trigger Endpoints — POST `/demo/signal`, `/demo/briefing`, `/demo/daily`
+- [x] Retina Chart Capture — 2x resolution, fullscreen, 16:9 optimized for mobile
 - [ ] Basic / Enterprise Tiers
 - [ ] Trading Intelligence Graph (TIG) — 3D investment intelligence visualization
 - [ ] Electron Desktop App — capture user behavior logs to deepen learning
