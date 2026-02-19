@@ -11,6 +11,7 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 # --- Telegram ---
 TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_DEMO_BOT_TOKEN: str = os.getenv("TELEGRAM_DEMO_BOT_TOKEN", "")
 
 # --- Anthropic (LLM) ---
 ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")

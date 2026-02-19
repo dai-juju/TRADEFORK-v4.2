@@ -29,6 +29,51 @@ logger = logging.getLogger(__name__)
 PRINCIPLES_TIMEOUT = 60  # seconds
 
 
+async def demo_start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/start — 데모봇 전용: 항상 데모 모드로 시작."""
+    if not update.effective_user or not update.message:
+        return
+
+    tg_id = update.effective_user.id
+    username = update.effective_user.username
+
+    from src.core.demo_seed import seed_demo_data
+
+    async with async_session_factory() as session:
+        user, _ = await get_or_create_user(session, tg_id, username)
+        stats = await seed_demo_data(session, user)
+
+        sync_data = await calculate_sync_rate(session, user)
+        sync_text = format_sync_rate(sync_data)
+
+        msg = (
+            "🔥 FORKER가 이미 너를 알고 있어.\n\n"
+            "3주간 너의 매매를 학습한 상태야.\n"
+            f"📊 매매 {stats['trades']}건, "
+            f"에피소드 {stats['episodes']}개, "
+            f"원칙 {stats['principles']}개 학습 완료\n\n"
+            f"{sync_text}\n\n"
+            "아무 질문이나 해봐! 예시:\n"
+            "  · 'SOL 어때?'\n"
+            "  · '어제 DOGE 손절 복기해줘'\n"
+            "  · 'BTC 10만 되면 알려줘'\n"
+            "  · /principles\n"
+            "  · /dailybrief\n\n"
+            "⚠️ TRADEFORK는 매매를 대행하지 않습니다."
+        )
+        session.add(ChatMessage(
+            user_id=user.id,
+            role="assistant",
+            content=msg,
+            message_type="text",
+            intent="general",
+            metadata_={"type": "demo_seed"},
+        ))
+        await session.commit()
+
+    await update.message.reply_text(msg)
+
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """/start — 온보딩 시작. /start demo → 데모 모드."""
     if not update.effective_user or not update.message:

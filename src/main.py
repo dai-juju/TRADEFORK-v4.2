@@ -44,6 +44,7 @@ from telegram.ext import (
 from src.bot.handlers import (
     callback_handler,
     dailybrief_command,
+    demo_start_command,
     help_command,
     message_handler,
     photo_handler,
@@ -55,6 +56,7 @@ from src.config import (
     HOT_POLL_INTERVAL,
     PRO_PATROL_INTERVAL_SECONDS,
     TELEGRAM_BOT_TOKEN,
+    TELEGRAM_DEMO_BOT_TOKEN,
     TRADE_POLL_INTERVAL,
     WARM_POLL_INTERVAL,
 )
@@ -64,13 +66,14 @@ logger = logging.getLogger(__name__)
 
 # Module-level — shutdown 접근용
 _tg_app: Application | None = None
+_tg_demo_app: Application | None = None
 _scheduler: AsyncIOScheduler | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """FastAPI lifespan — startup / shutdown."""
-    global _tg_app, _scheduler
+    global _tg_app, _tg_demo_app, _scheduler
 
     # ============================================================
     # STARTUP
@@ -123,7 +126,27 @@ async def lifespan(app: FastAPI):
         await _tg_app.initialize()
         await _tg_app.start()
         await _tg_app.updater.start_polling(drop_pending_updates=True)
-        logger.info("Telegram 봇 polling 시작.")
+        logger.info("Telegram 메인 봇 polling 시작.")
+
+    # 4-b) Demo Bot (학습된 FORKER 체험용)
+    if TELEGRAM_DEMO_BOT_TOKEN:
+        _tg_demo_app = Application.builder().token(TELEGRAM_DEMO_BOT_TOKEN).build()
+
+        _tg_demo_app.add_handler(CommandHandler("start", demo_start_command))
+        _tg_demo_app.add_handler(CommandHandler("help", help_command))
+        _tg_demo_app.add_handler(CommandHandler("sync", sync_command))
+        _tg_demo_app.add_handler(CommandHandler("principles", principles_command))
+        _tg_demo_app.add_handler(CommandHandler("dailybrief", dailybrief_command))
+        _tg_demo_app.add_handler(CallbackQueryHandler(callback_handler))
+        _tg_demo_app.add_handler(MessageHandler(filters.PHOTO, photo_handler))
+        _tg_demo_app.add_handler(
+            MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler)
+        )
+
+        await _tg_demo_app.initialize()
+        await _tg_demo_app.start()
+        await _tg_demo_app.updater.start_polling(drop_pending_updates=True)
+        logger.info("Telegram 데모 봇 polling 시작.")
 
     # 5) 백그라운드 태스크 + APScheduler
     trade_task: asyncio.Task | None = None
@@ -231,13 +254,20 @@ async def lifespan(app: FastAPI):
             pass
         logger.info("매매 감지 폴링 종료.")
 
-    # 4) Telegram Bot
+    # 4) Telegram Bots
+    if _tg_demo_app:
+        logger.info("Telegram 데모 봇 종료 중...")
+        await _tg_demo_app.updater.stop()
+        await _tg_demo_app.stop()
+        await _tg_demo_app.shutdown()
+        logger.info("Telegram 데모 봇 종료 완료.")
+
     if _tg_app:
-        logger.info("Telegram 봇 종료 중...")
+        logger.info("Telegram 메인 봇 종료 중...")
         await _tg_app.updater.stop()
         await _tg_app.stop()
         await _tg_app.shutdown()
-        logger.info("Telegram 봇 종료 완료.")
+        logger.info("Telegram 메인 봇 종료 완료.")
 
     # 5) DB 엔진 dispose
     try:
